@@ -1,5 +1,5 @@
 ﻿using NonStandard.GameUi;
-#if NONSTANDARD_MOUSE
+#if NONSTANDARD_UICLICK
 using NonStandard.Ui;
 using NonStandard.Ui.Mouse;
 #else
@@ -68,7 +68,7 @@ namespace NonStandard.Character {
 		}
 
 		public void SetFollower(CharacterMove target) { follower = Follower(target); }
-#if NONSTANDARD_MOUSE
+#if NONSTANDARD_UICLICK
 		public bool IsMouseOverUi() { return UiClick.IsMouseOverUi(); }
 		public Vector2 GetMousePosition() { return UiClick.GetMousePosition(); }
 #else
@@ -82,7 +82,7 @@ namespace NonStandard.Character {
 				if (rh.collider != null) {
 					whatToDoOnSuccessfulClick.Invoke(rh);
 				}
-#if NONSTANDARD_MOUSE
+#if NONSTANDARD_MOUSECURSOR
 				MouseCursor.Instance.currentSet = clickSettings.moveMouseCursorSet;
 			} else {
 				MouseCursor.Instance.currentSet = clickSettings.UiMouseCursorSet;
