@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace NonStandard.Character {
 	public class ClickToMove : MonoBehaviour {
-		public CharacterController characterToMove;
+		public FpsCharacterController characterToMove;
 		/*
 		public KCode key = KCode.Mouse0;
 		*/
@@ -29,8 +29,8 @@ namespace NonStandard.Character {
 #if UNITY_EDITOR
 		/// called when created by Unity Editor
 		void Reset() {
-			if (characterToMove == null) { characterToMove = transform.GetComponentInParent<CharacterController>(); }
-			if (characterToMove == null) { characterToMove = FindObjectOfType<CharacterController>(); }
+			if (characterToMove == null) { characterToMove = transform.GetComponentInParent<FpsCharacterController>(); }
+			if (characterToMove == null) { characterToMove = FindObjectOfType<FpsCharacterController>(); }
 			if (_camera == null) { _camera = GetComponent<Camera>(); }
 			if (_camera == null) { _camera = Camera.main; }
 			if (_camera == null) { _camera = FindObjectOfType<Camera>(); }
