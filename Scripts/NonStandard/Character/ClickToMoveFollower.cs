@@ -31,7 +31,8 @@ namespace NonStandard.Character {
 		Vector3 targetPosition;
 		Vector3[] shortTermPositionHistory = new Vector3[10];
 		int historyIndex, historyDuringThisMove;
-		public CharacterMove mover;
+		//public CharacterMove mover;
+		public Root root;
 		public ClickToMove clickToMoveUi;
 		float characterHeight = 0, characterRadius = 0;
 		public Color color = Color.white;
@@ -49,9 +50,9 @@ namespace NonStandard.Character {
 			Init(gameObject);
 		}
 		public void Init(GameObject go) {
-			if (mover != null) { return; }
-			mover = GetComponent<CharacterMove>();
-			CapsuleCollider cap = mover.GetComponent<CapsuleCollider>();
+			if (root != null) { return; }
+			root = GetComponent<Root>();
+			CapsuleCollider cap = root.GetComponent<CapsuleCollider>();
 			if (cap != null) {
 				characterHeight = cap.height / 2;
 				characterRadius = cap.radius;
@@ -72,7 +73,7 @@ namespace NonStandard.Character {
 		}
 		public void UpdateLine() {
 			List<Vector3> points = new List<Vector3>();
-			points.Add(mover.transform.position);
+			points.Add(root.transform.position);
 			Vector3 here;
 			for (int i = 0; i < waypoints.Count; ++i) {
 				here = waypoints[i].positon;
@@ -117,8 +118,8 @@ namespace NonStandard.Character {
 			return (historyDuringThisMove > 0 && manhattanDistance < 0.5f);
 		}
 		public void FixedUpdate() {
-			if (mover.IsAutoMoving()) {
-				if (IsStuck(mover.transform.position)) { NotifyWayPointReached(); }
+			if (root.move.IsAutoMoving) {
+				if (IsStuck(root.move.transform.position)) { NotifyWayPointReached(); }
 			} else {
 				if (waypoints.Count > 0) {
 					NotifyWayPointReached();
@@ -165,12 +166,12 @@ namespace NonStandard.Character {
 				*/
 			}
 			int predictionsMadeThisTime = 0;
-			float speed = mover.move.speed;
+			float speed = root.move.speed;
 			float move = speed * timeJump;
 			Vector3 capT, capB;
 			float rad;
 			float gForce = Mathf.Abs(Physics.gravity.y);
-			mover.GetLocalCapsule(out capT, out capB, out rad);
+			root.move.CalculateLocalCapsule(out capT, out capB, out rad);
 			do {
 				if (predictionWaypointIndex + 1 >= waypoints.Count) { doPrediction = false; break; }
 				Vector3 next = waypoints[predictionWaypointIndex + 1].positon;
@@ -249,7 +250,7 @@ namespace NonStandard.Character {
 			predictionSeconds += timeToFall;
 		}
 		public void NotifyWayPointReached() {
-			mover.DisableAutoMove();
+			root.move.DisableAutoMove();
 			//line.Line(Vector3.zero, Vector3.zero);
 			if (waypoints.Count > 0) {
 				Interact3dItem wpObj = waypoints[0].ui;
@@ -264,27 +265,27 @@ namespace NonStandard.Character {
 					p = currentWaypoint.transform.position;
 				}
 				if (jumpPress > 0) {
-					mover.JumpButtonTimed = jumpPress;
+					root.jump.TimedJumpPress = jumpPress;
 					Vector3 delta = p - transform.position;
 					// calculate the distance needed to jump to, both vertically and horizontally
 					float vDist = delta.y;
 					delta.y = 0;
 					float hDist = delta.magnitude;
 					// estimate max jump distance TODO work out this math...
-					float height = mover.jump.max;
+					float height = root.jump.max;
 					float v = Mathf.Sqrt(height * 2);
 
-					float jDist = mover.MoveSpeed * height;
+					float jDist = root.move.MoveSpeed * height;
 					float distExtra = jDist - hDist;
 					long howLongToWaitInAir = (long)(distExtra * 1000 / jDist);
 					//GameClock.Delay(howLongToWaitInAir, () => mover.SetAutoMovePosition(p, NotifyWayPointReached, 0));
 					IEnumerator DelaySetMovePosition() {
 						yield return new WaitForSeconds((float)howLongToWaitInAir / 1000);
-						mover.SetAutoMovePosition(p, NotifyWayPointReached, 0);
+						root.move.SetAutoMovePosition(p, NotifyWayPointReached, 0);
 					}
 					StartCoroutine(DelaySetMovePosition());
 				} else {
-					mover.SetAutoMovePosition(p, NotifyWayPointReached, 0);
+					root.move.SetAutoMovePosition(p, NotifyWayPointReached, 0);
 				}
 			} else {
 				if (currentWaypoint != null && currentWaypoint.showing) { currentWaypoint.showing = false; }
@@ -305,7 +306,7 @@ namespace NonStandard.Character {
 			}
 			historyDuringThisMove = 0;
 			if (waypoints.Count == 0) {
-				mover.SetAutoMovePosition(targetPosition, NotifyWayPointReached, 0);
+				root.move.SetAutoMovePosition(targetPosition, NotifyWayPointReached, 0);
 				//line.Arrow(mover.transform.position, targetPosition, Color.red);
 			} else {
 				//line.Arrow(waypoints[waypoints.Count - 1].transform.position, targetPosition, Color.red);
@@ -323,7 +324,7 @@ namespace NonStandard.Character {
 				currentWaypoint.OnInteract = AddWaypointHere;
 				//Debug.Log("waypoint made " + targetPosition);
 			}
-			bool showIt = mover.IsAutoMoving() && (waypoints.Count == 0 ||
+			bool showIt = root.move.IsAutoMoving && (waypoints.Count == 0 ||
 				waypoints[waypoints.Count - 1].positon != currentWaypoint.transform.position);
 			if (showIt) {
 				currentWaypoint.showing = true;

@@ -1,5 +1,4 @@
-﻿using NonStandard.Utility.UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace NonStandard.Character
 {
@@ -7,32 +6,30 @@ namespace NonStandard.Character
 	{
 		public Animator animator;
 		[ContextMenuItem("Bind Events", "BindEvents")]
-		public CharacterRoot character;
+		public Root root;
 		private void Start() {
 			Init();
 		}
 		private void Init() {
 			if (animator == null) { animator = GetComponent<Animator>(); }
 			if (animator == null) { animator = GetComponentInParent<Animator>(); }
-			if (character == null) { character = GetComponent<CharacterRoot>(); }
-			if (character == null) { character = GetComponentInParent<CharacterRoot>(); }
-			if (character == null) {
+			if (root == null) { root = GetComponent<Root>(); }
+			if (root == null) { root = GetComponentInParent<Root>(); }
+			if (root == null) {
 				Utility.Follow f = GetComponent<Utility.Follow>();
-				if (f) { character = f.whoToFollow.GetComponent<CharacterRoot>(); }
+				if (f) { root = f.whoToFollow.GetComponent<Root>(); }
 			}
-			if (character) character.Init();
-			//cb.jumped.AddListener(Jump);
-			//cb.stand.AddListener(Stand);
-			//cb.fall.AddListener(Fall);
-			//cb.arrived.AddListener(Wave);
 		}
 		public void BindEvents() {
 			Init();
-			CharacterMove.Callbacks cb = character.move.callbacks;
-			EventBind.On(cb.jumped, this, nameof(Jump));
-			EventBind.On(cb.stand, this, nameof(Stand));
-			EventBind.On(cb.fall, this, nameof(Fall));
-			EventBind.On(cb.arrived, this, nameof(Wave));
+			if (root.callbacks == null) {
+				root.callbacks = root.gameObject.AddComponent<Callbacks>();
+			}
+			Callbacks cb = root.callbacks;
+			EventBind.IfNotAlready(cb.jumped, this, nameof(Jump));
+			EventBind.IfNotAlready(cb.stand, this, nameof(Stand));
+			EventBind.IfNotAlready(cb.fall, this, nameof(Fall));
+			EventBind.IfNotAlready(cb.arrived, this, nameof(Wave));
 		}
 
 		bool shouldTriggerJumpAnimation = false;
@@ -40,7 +37,7 @@ namespace NonStandard.Character
 			//Show.Log("jump");
 			//animator.SetTrigger("Land");
 			animator.SetBool("Grounded", false);
-			if (character.move.IsStableOnGround()) {
+			if (root.move.IsStableOnGround) {
 				shouldTriggerJumpAnimation = true;
 			}
 		}
@@ -63,7 +60,7 @@ namespace NonStandard.Character
 
 		public void FixedUpdate() {
 			if (animator.GetBool("Grounded")) {
-				float speed = character.move.rb.velocity.magnitude;
+				float speed = root.rb.velocity.magnitude;
 				animator.SetFloat("MoveSpeed", speed);
 			}
 			if (shouldTriggerJumpAnimation && !animator.IsInTransition(0)) {

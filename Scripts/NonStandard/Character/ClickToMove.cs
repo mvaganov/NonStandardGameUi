@@ -46,7 +46,7 @@ namespace NonStandard.Character {
 				}
 			}
 		}
-		public ClickToMoveFollower Follower(CharacterMove currentChar) {
+		public ClickToMoveFollower Follower(Mover currentChar) {
 			ClickToMoveFollower follower = currentChar.GetComponent<ClickToMoveFollower>();
 			if (follower == null) {
 				follower = currentChar.gameObject.AddComponent<ClickToMoveFollower>();
@@ -67,7 +67,7 @@ namespace NonStandard.Character {
 			follower.UpdateLine();
 		}
 
-		public void SetFollower(CharacterMove target) { follower = Follower(target); }
+		public void SetFollower(Mover target) { follower = Follower(target); }
 #if NONSTANDARD_UICLICK
 		public bool IsMouseOverUi() { return UiClick.IsMouseOverUi(); }
 		public Vector2 GetMousePosition() { return UiClick.GetMousePosition(); }
