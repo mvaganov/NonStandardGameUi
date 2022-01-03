@@ -281,11 +281,11 @@ namespace NonStandard.Character {
 					//GameClock.Delay(howLongToWaitInAir, () => mover.SetAutoMovePosition(p, NotifyWayPointReached, 0));
 					IEnumerator DelaySetMovePosition() {
 						yield return new WaitForSeconds((float)howLongToWaitInAir / 1000);
-						root.move.SetAutoMovePosition(p, NotifyWayPointReached, 0);
+						root.move.SetAutoMovePosition(p, 0, NotifyWayPointReached);
 					}
 					StartCoroutine(DelaySetMovePosition());
 				} else {
-					root.move.SetAutoMovePosition(p, NotifyWayPointReached, 0);
+					root.move.SetAutoMovePosition(p, 0, NotifyWayPointReached);
 				}
 			} else {
 				if (currentWaypoint != null && currentWaypoint.showing) { currentWaypoint.showing = false; }
@@ -306,7 +306,7 @@ namespace NonStandard.Character {
 			}
 			historyDuringThisMove = 0;
 			if (waypoints.Count == 0) {
-				root.move.SetAutoMovePosition(targetPosition, NotifyWayPointReached, 0);
+				root.move.SetAutoMovePosition(targetPosition, 0, NotifyWayPointReached);
 				//line.Arrow(mover.transform.position, targetPosition, Color.red);
 			} else {
 				//line.Arrow(waypoints[waypoints.Count - 1].transform.position, targetPosition, Color.red);
