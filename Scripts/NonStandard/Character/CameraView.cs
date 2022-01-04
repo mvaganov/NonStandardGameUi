@@ -140,8 +140,8 @@ namespace NonStandard.Character {
 			userTarget = cam.target;
 			cam.target = null;
 			//}
-			started = Mover.Now;
-			end = Mover.Now + (ulong)lerpDurationMs;
+			started = Move.Now;
+			end = Move.Now + (ulong)lerpDurationMs;
 			yield return null;
 			//Proc.Delay(0, LerpToTarget);
 			while (lerping) {
@@ -151,7 +151,7 @@ namespace NonStandard.Character {
 		}
 		private void LerpToTarget() {
 			lerping = true;
-			ulong now = Mover.Now;
+			ulong now = Move.Now;
 			ulong passed = now - started;
 			float p = (float)passed / lerpDurationMs;
 			if (now >= end) { p = 1; }
