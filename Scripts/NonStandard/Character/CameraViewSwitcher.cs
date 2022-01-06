@@ -48,23 +48,34 @@ namespace NonStandard.Character {
 		private Vector3 startPosition;
 		private CameraView targetView = new CameraView();
 		internal Transform userTarget;
+		/// <summary>
+		/// user-defined zoom
+		/// </summary>
+		public float userDistance;
+		/// <summary>
+		/// user-defined rotation
+		/// </summary>
+		protected Quaternion userRotation;
+		public Quaternion UserRotation => userRotation;
 		private void Awake() {
 			cam = GetComponent<CharacterCamera>();
 			t = cam.transform;
 			targetView.target = userTarget;
-			targetView.rotation = cam.UserRotation;
-			targetView.distance = cam.userDistance;
+			targetView.rotation = userRotation;
+			targetView.distance = userDistance;
 		}
 		private void Start() {
 			userTarget = cam.target;
+			userDistance = cam.targetDistance;
+			userRotation = t.rotation;
 		}
 		public void LerpView(string viewName) {
 			currentViewname = viewName;
 			string n = viewName.ToLower();
 			switch (n) {
 				case "user":
-					LerpRotation(cam.UserRotation);
-					LerpDistance(cam.userDistance);
+					LerpRotation(userRotation);
+					LerpDistance(userDistance);
 					LerpTarget(userTarget);
 					return;
 				default:
