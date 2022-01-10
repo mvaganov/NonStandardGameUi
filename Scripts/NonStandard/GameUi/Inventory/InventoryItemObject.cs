@@ -12,8 +12,8 @@ namespace NonStandard.GameUi.Inventory {
 			public float waitTill;
 			public bool automaticallySetCollider = true;
 			public bool enableColliderForPickup = true;
-			public bool CanBePickedUpByCollision() {
-				return enableColliderForPickup && Time.time >= waitTill;
+			public bool CanBePickedUpByCollision(InventoryCollector collector) {
+				return collector != null && enableColliderForPickup && Time.time >= waitTill;
 			}
 			public void DelayPickup() {
 				waitTill = Time.time + pickupDelay;
@@ -38,18 +38,32 @@ namespace NonStandard.GameUi.Inventory {
 				}
 			}
 		}
-		public void SetPickedUpBy(GameObject collector) {
-			if (!rules.CanBePickedUpByCollision()) return;
+		public void PickupRequestBy(GameObject gameObject) {
+			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
+			if (!rules.CanBePickedUpByCollision(collector)) return;
+			PickupConfirm confirm = GetComponent<PickupConfirm>();
+			if (confirm == null) {
+				PickupConfirmBy(collector);
+				return;
+			}
+			confirm.StartConfirmation(collector);
+			// modal confirm
+			// progress bar
+			// modal confirm into progress bar
+			// puzzle
+			// request from partial owners
+		}
+		public void PickupConfirmBy(InventoryCollector collector) {
 			item.SetPickedUpBy(collector);
 		}
 		public void OnEnable() {
 			rules.DelayPickup();
 		}
 		private void OnTriggerEnter(Collider other) {
-			SetPickedUpBy(other.gameObject);
+			PickupRequestBy(other.gameObject);
 		}
 		private void OnCollisionEnter(Collision collision) {
-			SetPickedUpBy(collision.gameObject); 
+			PickupRequestBy(collision.gameObject); 
 		}
 	}
 }

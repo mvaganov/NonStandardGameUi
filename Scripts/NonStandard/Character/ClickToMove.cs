@@ -31,9 +31,7 @@ namespace NonStandard.Character {
 		void Reset() {
 			if (characterToMove == null) { characterToMove = transform.GetComponentInParent<UserController>(); }
 			if (characterToMove == null) { characterToMove = FindObjectOfType<UserController>(); }
-			if (_camera == null) { _camera = GetComponent<Camera>(); }
-			if (_camera == null) { _camera = Camera.main; }
-			if (_camera == null) { _camera = FindObjectOfType<Camera>(); }
+			_camera = UiCamera.Find(this);
 		}
 #endif
 		private void Awake() {

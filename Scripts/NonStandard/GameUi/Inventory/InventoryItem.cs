@@ -5,7 +5,7 @@ namespace NonStandard.GameUi.Inventory {
 	[System.Serializable]
 	public class InventoryItem {
 		[SerializeField] public string _name;
-		public Sprite image;
+		public Sprite icon;
 		[System.Serializable]
 		public class SpecialBehavior {
 			[System.Serializable] public class UnityEvent_object : UnityEvent<object> { }
@@ -58,8 +58,7 @@ namespace NonStandard.GameUi.Inventory {
 			inventory.AddItem(this);
 			inventoryAddBehavior?.onAdd?.Invoke(this);
 		}
-		public void SetPickedUpBy(GameObject other) {
-			InventoryCollector inv = other.GetComponent<InventoryCollector>();
+		public void SetPickedUpBy(InventoryCollector inv) {
 			//Debug.Log("item hits "+other);
 			if (inv != null && inv.autoPickup && inv.inventory != null) {
 				inv.AddItem(this);
