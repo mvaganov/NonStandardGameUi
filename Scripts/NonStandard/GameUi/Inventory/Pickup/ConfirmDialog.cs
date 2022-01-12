@@ -21,7 +21,7 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			public void Start() {
 				modal.CancelOk("Pickup " + _item.item.name, DoConfirm, _item.item.icon);
-				distanceLimit = Vector3.Distance(_item.transform.position, _collector.transform.position) * 1.125f;
+				distanceLimit = Vector3.Distance(_item.transform.position, _collector.transform.position) + _confirmRules.cancelOnMoveAwayDistance;
 			}
 			public void Update() {
 				if (_confirmRules.cancelOnMoveAwayDistance >= 0) {

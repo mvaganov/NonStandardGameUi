@@ -6,7 +6,7 @@ namespace NonStandard.GameUi.Inventory {
 		class PickupEvent {
 			public InventoryCollector _collector;
 			public InventoryItemObject _item;
-			public Progress _progressRules;
+			public Progress _rules;
 			public float distanceLimit;
 			public ProgressBar progressBar;
 			float timer;
@@ -14,12 +14,12 @@ namespace NonStandard.GameUi.Inventory {
 			public PickupEvent(Progress confirmRules, InventoryItemObject item, InventoryCollector collector) {
 				_collector = collector;
 				_item = item;
-				_progressRules = confirmRules;
-				ProgressBar originalProgressBar = Global.GetComponent<ProgressBar>();
-				progressBar = Instantiate(originalProgressBar.gameObject).GetComponent<ProgressBar>();
-				progressBar.transform.SetParent(originalProgressBar.transform.parent, false);
+				_rules = confirmRules;
+				ProgressBar original = Global.GetComponent<ProgressBar>();
+				progressBar = Instantiate(original.gameObject).GetComponent<ProgressBar>();
+				progressBar.transform.SetParent(original.transform.parent, false);
 				Follow follow = null;
-				if (_progressRules.cancelOnMoveAwayDistance >= 0) {
+				if (_rules.cancelOnMoveAwayDistance >= 0) {
 					follow = progressBar.gameObject.AddComponent<Follow>();
 					follow.followTarget = _item.transform;
 				}
@@ -35,10 +35,10 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			public void Start() {
 				progressBar.Show();
-				distanceLimit = Vector3.Distance(_item.transform.position, _collector.transform.position) + _progressRules.cancelOnMoveAwayDistance;
+				distanceLimit = Vector3.Distance(_item.transform.position, _collector.transform.position) + _rules.cancelOnMoveAwayDistance;
 			}
 			public void Update() {
-				if (_progressRules.cancelOnMoveAwayDistance >= 0) {
+				if (_rules.cancelOnMoveAwayDistance >= 0) {
 					float d = Vector3.Distance(_item.transform.position, _collector.transform.position);
 					if (d > distanceLimit) {
 						Cancel();
@@ -46,13 +46,13 @@ namespace NonStandard.GameUi.Inventory {
 					}
 				}
 				timer += Time.deltaTime;
-				float p = timer / _progressRules.duration;
+				float p = timer / _rules.duration;
 				progressBar.Progress = p;
 			}
 			void ItIsFinished() {
-				if (_progressRules.resetOnCancel) {
+				if (_rules.resetOnCancel) {
 					timer = 0;
-					_progressRules.pickupEvent = null;
+					_rules.pickupEvent = null;
 					Destroy(progressBar.gameObject);
 				}
 				active = false;
@@ -61,7 +61,7 @@ namespace NonStandard.GameUi.Inventory {
 				progressBar.Cancel();
 				ItIsFinished();
 			}
-			public bool IsDone => timer > _progressRules.duration;
+			public bool IsDone => timer > _rules.duration;
 		}
 		PickupEvent pickupEvent;
 		[Tooltip("-1 to never cancel")]
