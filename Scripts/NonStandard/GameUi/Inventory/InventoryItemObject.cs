@@ -41,7 +41,7 @@ namespace NonStandard.GameUi.Inventory {
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
 			if (!rules.CanBePickedUpByCollision(collector)) return;
-			PickupConfirm confirm = GetComponent<PickupConfirm>();
+			PickupBase confirm = GetComponent<PickupBase>();
 			if (confirm == null) {
 				PickupConfirmBy(collector);
 				return;

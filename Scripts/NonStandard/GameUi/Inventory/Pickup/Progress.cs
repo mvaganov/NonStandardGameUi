@@ -2,16 +2,16 @@ using NonStandard.Ui;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
-	public class PickupProgress : PickupConfirm {
+	public class Progress : PickupBase {
 		class PickupEvent {
 			public InventoryCollector _collector;
 			public InventoryItemObject _item;
-			public PickupProgress _progressRules;
+			public Progress _progressRules;
 			public float distanceLimit;
 			public ProgressBar progressBar;
 			float timer;
 			public bool active = true;
-			public PickupEvent(PickupProgress confirmRules, InventoryItemObject item, InventoryCollector collector) {
+			public PickupEvent(Progress confirmRules, InventoryItemObject item, InventoryCollector collector) {
 				_collector = collector;
 				_item = item;
 				_progressRules = confirmRules;

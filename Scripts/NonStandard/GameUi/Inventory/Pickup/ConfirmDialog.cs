@@ -2,7 +2,7 @@ using NonStandard.Ui;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
-	public class ConfirmDialog : PickupConfirm {
+	public class ConfirmDialog : PickupBase {
 		class PickupEvent {
 			public InventoryCollector _collector;
 			public InventoryItemObject _item;
@@ -24,16 +24,21 @@ namespace NonStandard.GameUi.Inventory {
 				distanceLimit = Vector3.Distance(_item.transform.position, _collector.transform.position) * 1.125f;
 			}
 			public void Update() {
-				if (_confirmRules.cancelOnMoveAway) {
+				if (_confirmRules.cancelOnMoveAwayDistance >= 0) {
 					float d = Vector3.Distance(_item.transform.position, _collector.transform.position);
 					if (d > distanceLimit) {
-						modal.Hide();
+						Cancel();
+						return;
 					}
 				}
 			}
+			void Cancel() {
+				modal.Hide();
+			}
 		}
 		PickupEvent pickupEvent;
-		public bool cancelOnMoveAway;
+		[Tooltip("-1 to never cancel")]
+		public float cancelOnMoveAwayDistance = -1;
 		override public void StartConfirmation(InventoryCollector collector) {
 			InventoryItemObject item = GetComponent<InventoryItemObject>();
 			pickupEvent = new PickupEvent(this, item, collector);
