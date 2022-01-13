@@ -2,14 +2,14 @@ using NonStandard.Ui;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
-	public class ConfirmDialog : PickupBase {
+	public class PickupConfirmDialog : PickupBase {
 		class PickupEvent {
 			public InventoryCollector _collector;
 			public InventoryItemObject _item;
-			public ConfirmDialog _confirmRules;
+			public PickupConfirmDialog _confirmRules;
 			public float distanceLimit;
 			public ModalConfirmation modal;
-			public PickupEvent(ConfirmDialog confirmRules, InventoryItemObject item, InventoryCollector collector) {
+			public PickupEvent(PickupConfirmDialog confirmRules, InventoryItemObject item, InventoryCollector collector) {
 				_collector = collector;
 				_item = item;
 				_confirmRules = confirmRules;
