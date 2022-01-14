@@ -1,5 +1,6 @@
 using NonStandard.Ui;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace NonStandard.GameUi.Inventory {
 	public class PickupProgress : PickupBase {
@@ -24,14 +25,15 @@ namespace NonStandard.GameUi.Inventory {
 					follow.followTarget = _item.transform;
 				}
 				EventBind.Clear(progressBar.onComplete);
-				progressBar.onComplete.AddListener(DoConfirm);
-				progressBar.onCancel.AddListener(ItIsFinished);
+				progressBar.onComplete.AddListener(_rules.OnComplete); //EventBind.On(progressBar.onComplete, _rules, nameof(_rules.OnComplete)); //
+				progressBar.onComplete.AddListener(_rules.Pickup); //EventBind.On(progressBar.onComplete, _rules, nameof(_rules.Pickup));// 
+				progressBar.onCancel.AddListener(ItIsFinished); //EventBind.On(progressBar.onCancel, _rules, nameof(_rules.Cancel)); //
 				UiText.SetText(progressBar.label, "pickup "+_item.item.name);
 				progressBar.gameObject.SetActive(true);
 			}
-			public void DoConfirm() {
+			public void Pickup() {
 				_item.PickupConfirmBy(_collector);
-				Destroy(progressBar.gameObject);
+				ItIsFinished();
 			}
 			public void Start() {
 				progressBar.Show();
@@ -57,7 +59,7 @@ namespace NonStandard.GameUi.Inventory {
 				}
 				active = false;
 			}
-			void Cancel() {
+			public void Cancel() {
 				progressBar.Cancel();
 				ItIsFinished();
 			}
@@ -68,6 +70,8 @@ namespace NonStandard.GameUi.Inventory {
 		public float cancelOnMoveAwayDistance = -1;
 		public bool resetOnCancel = true;
 		public float duration = 3;
+
+		public PickupButton.UnityEvent_Collector onProgressComplete = new PickupButton.UnityEvent_Collector();
 		override public void StartConfirmation(InventoryCollector collector) {
 			InventoryItemObject item = GetComponent<InventoryItemObject>();
 			if (pickupEvent != null) {
@@ -82,5 +86,21 @@ namespace NonStandard.GameUi.Inventory {
 			pickupEvent.Update();
 			if (pickupEvent != null && pickupEvent.IsDone) { pickupEvent = null; }
 		}
+		public void Reset() {
+			// if this is placed on an object with a pickup button, assume the progress should start on the button.
+			PickupButton pButt = GetComponent<PickupButton>();
+			if (pButt != null && pButt.onClick.GetPersistentEventCount() == 1 && 
+				pButt.onClick.GetPersistentMethodName(0) == nameof(pButt.PickupItem) && pButt.onClick.GetPersistentTarget(0) == pButt) {
+				EventBind.Clear(pButt.onClick);
+				EventBind.On(pButt.onClick, this, nameof(StartConfirmation));
+				EventBind.On(pButt.onClick, pButt, nameof(pButt.Finish));
+				EventBind.On(onProgressComplete, pButt, nameof(pButt.Finish));
+				cancelOnMoveAwayDistance = pButt.cancelOnMoveAwayDistance;
+			}
+		}
+		public void OnComplete(InventoryCollector collector) { onProgressComplete.Invoke(collector); }
+		public void OnComplete() { onProgressComplete.Invoke(pickupEvent._collector); }
+		public void Pickup() { pickupEvent.Pickup(); }
+		public void Cancel() { pickupEvent.Cancel(); }
 	}
 }

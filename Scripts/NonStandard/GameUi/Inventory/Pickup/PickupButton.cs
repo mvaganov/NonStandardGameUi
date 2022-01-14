@@ -22,11 +22,14 @@ namespace NonStandard.GameUi.Inventory {
 				f.followTarget = _item.transform;
 				f.disableWhenTargetDisables = _item.gameObject;
 				Button btn = ui.GetComponentInChildren<Button>();
-				EventBind.On(btn.onClick, _rules, nameof(_rules.OnClick));
+				EventBind.On(btn.onClick, _rules, nameof(_rules.OnClick), _collector);
 				ui.gameObject.SetActive(true);
 			}
-			public void PickupItem() {
-				_item.PickupConfirmBy(_collector);
+			public void PickupItem(InventoryCollector collector) {
+				if (collector != _collector) {
+					Debug.LogWarning("unexpected collector..."+collector+", expected "+_collector);
+				}
+				_item.PickupConfirmBy(collector);
 			}
 			public void Start() {
 				UiText.SetText(ui.gameObject, _item.item.name);
@@ -42,11 +45,9 @@ namespace NonStandard.GameUi.Inventory {
 				}
 			}
 			void Cancel() {
-				Debug.Log("cancelled");
 				Finish();
 			}
 			public void Finish() {
-				Debug.Log("finished!");
 				Destroy(ui.gameObject);
 				_rules.pickupEvent = null;
 			}
@@ -54,7 +55,8 @@ namespace NonStandard.GameUi.Inventory {
 		PickupEvent pickupEvent;
 		[Tooltip("-1 to never cancel")]
 		public float cancelOnMoveAwayDistance = 1;
-		public UnityEvent onClick = new UnityEvent();
+		[System.Serializable] public class UnityEvent_Collector : UnityEvent<InventoryCollector> { }
+		public UnityEvent_Collector onClick = new UnityEvent_Collector();
 		private void Reset() {
 			EventBind.On(onClick, this, nameof(PickupItem));
 		}
@@ -69,10 +71,12 @@ namespace NonStandard.GameUi.Inventory {
 			if (pickupEvent == null) { return; }
 			pickupEvent.Update();
 		}
-		public void PickupItem() {
-			pickupEvent.PickupItem();
+		public void PickupItem(InventoryCollector collector) {
+			pickupEvent.PickupItem(collector);
 			pickupEvent.Finish();
 		}
-		public void OnClick() { onClick.Invoke(); }
+		public void OnClick(InventoryCollector collector) { onClick.Invoke(collector); }
+		public void Finish(InventoryCollector collector) { Finish(); }
+		public void Finish() { pickupEvent?.Finish(); }
 	}
 }
