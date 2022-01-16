@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
-	public class InventoryItemObject : MonoBehaviour {
+	public class InventoryItemObject : Interactable {
 		public InventoryItem item = new InventoryItem();
 		public PickupRules rules = new PickupRules();
 		[System.Serializable] public class PickupRules {

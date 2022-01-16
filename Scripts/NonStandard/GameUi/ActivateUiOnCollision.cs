@@ -1,8 +1,9 @@
 using UnityEngine;
 
 namespace NonStandard.GameUi {
-	public class ActivateUiOnCollision : MonoBehaviour {
-		// TODO triggered by collision system
+	public class ActivateUiOnCollision : Interactable {
+		// TODO triggered by collision system kind
+		public LayerMask interactable;
 		private void Start() {
 		}
 		private void OnCollisionEnter(Collision collision) {
@@ -11,7 +12,8 @@ namespace NonStandard.GameUi {
 			eg.Invoke(collision.gameObject);
 		}
 		private void OnTriggerEnter(Collider other) {
-			if (!enabled) return;
+			if (!enabled || (other.gameObject.layer & interactable) != interactable) return;
+			Debug.Log(other.name+" "+ other.gameObject.layer+" "+ (int)interactable);
 			UiGiverBase eg = GetComponent<UiGiverBase>();
 			eg.Invoke(other.gameObject);
 		}
