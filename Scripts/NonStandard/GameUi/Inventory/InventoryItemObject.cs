@@ -41,19 +41,27 @@ namespace NonStandard.GameUi.Inventory {
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
 			if (!rules.CanBePickedUpByCollision(collector)) return;
-			PickupBase confirm = GetComponent<PickupBase>();
+			EventGiver confirm = GetComponent<EventGiver>();
 			if (confirm == null) {
-				PickupConfirmBy(collector);
+				SetPickedUp(collector);
 				return;
 			}
-			confirm.StartConfirmation(collector);
+			confirm.Invoke(gameObject);
 			// modal confirm
 			// progress bar
 			// modal confirm into progress bar
 			// puzzle
 			// request from partial owners
 		}
-		public void PickupConfirmBy(InventoryCollector collector) {
+		public void SetPickedUp(GameObject collectorObject) {
+			InventoryCollector collector = collectorObject.GetComponent<InventoryCollector>();
+			if (collector == null) {
+				Debug.LogError(collector+" is not a "+nameof(InventoryCollector)+" object, cannot pickup "+name);
+				return;
+			}
+			SetPickedUp(collector);
+		}
+		public void SetPickedUp(InventoryCollector collector) {
 			item.SetPickedUpBy(collector);
 		}
 		public void OnEnable() {
