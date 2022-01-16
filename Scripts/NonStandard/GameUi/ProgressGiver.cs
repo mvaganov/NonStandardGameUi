@@ -1,8 +1,9 @@
+using NonStandard.GameUi.Inventory;
 using NonStandard.Ui;
 using UnityEngine;
 
-namespace NonStandard.GameUi.Inventory {
-	public class ProgressGiver : EventGiver {
+namespace NonStandard.GameUi {
+	public class ProgressGiver : UiGiverBase {
 		class EventData {
 			public GameObject _instigator;
 			public ProgressGiver _progressGiver;
@@ -90,19 +91,20 @@ namespace NonStandard.GameUi.Inventory {
 			base.Reset();
 			// if this progress bar is for an item, use that item name as progress text
 			InventoryItemObject item = GetComponent<InventoryItemObject>();
-			progressText = "pickup "+item.item.name;
-			Debug.Log(" " + progressText);
-			// if this is placed on an object with a button
-			ButtonGiver pButt = GetComponent<ButtonGiver>();
-			if (pButt != null && pButt._event.GetPersistentEventCount() == 1) {
-				// and that button picks up this item
-				if (pButt._event.GetPersistentMethodName(0) == nameof(item.SetPickedUp) && pButt._event.GetPersistentTarget(0) == item) {
-					// assume the button should start this progress instead, the end of the progress will pickup the button.
-					EventBind.Clear(pButt._event);
-					EventBind.On(pButt._event, this, nameof(Invoke));
-					// when the progress bar finishes, also finish the button
-					EventBind.On(_event, pButt, nameof(pButt.Finish));
-					cancelOnMoveAwayDistance = pButt.cancelOnMoveAwayDistance;
+			if (item != null) {
+				progressText = "pickup " + item.item.name;
+				// if this is placed on an object with a button
+				ButtonGiver pButt = GetComponent<ButtonGiver>();
+				if (pButt != null && pButt._event.GetPersistentEventCount() == 1) {
+					// and that button picks up this item
+					if (pButt._event.GetPersistentMethodName(0) == nameof(item.SetPickedUp) && pButt._event.GetPersistentTarget(0) == item) {
+						// assume the button should start this progress instead, the end of the progress will pickup the button.
+						EventBind.Clear(pButt._event);
+						EventBind.On(pButt._event, this, nameof(Invoke));
+						// when the progress bar finishes, also finish the button
+						EventBind.On(_event, pButt, nameof(pButt.Finish));
+						cancelOnMoveAwayDistance = pButt.cancelOnMoveAwayDistance;
+					}
 				}
 			}
 		}

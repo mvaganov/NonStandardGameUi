@@ -1,9 +1,10 @@
+using NonStandard.GameUi.Inventory;
 using NonStandard.Ui;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NonStandard.GameUi.Inventory {
-	public class ButtonGiver : EventGiver {
+namespace NonStandard.GameUi {
+	public class ButtonGiver : UiGiverBase {
 		class EventData {
 			public GameObject _instigator;
 			public ButtonGiver _buttonGiver;

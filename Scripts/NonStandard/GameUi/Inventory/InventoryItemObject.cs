@@ -11,9 +11,9 @@ namespace NonStandard.GameUi.Inventory {
 			[Tooltip("Set automatically when dropped, so that the player does not immediately re-acquire a dropped object")]
 			public float waitTill;
 			public bool automaticallySetCollider = true;
-			public bool enableColliderForPickup = true;
+			public bool enablePickup = true;
 			public bool CanBePickedUpByCollision(InventoryCollector collector) {
-				return collector != null && enableColliderForPickup && Time.time >= waitTill;
+				return collector != null && enablePickup && Time.time >= waitTill;
 			}
 			public void DelayPickup() {
 				waitTill = Time.time + pickupDelay;
@@ -40,18 +40,13 @@ namespace NonStandard.GameUi.Inventory {
 		}
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
-			if (!rules.CanBePickedUpByCollision(collector)) return;
-			EventGiver confirm = GetComponent<EventGiver>();
-			if (confirm == null) {
+			if (collector == null || !rules.CanBePickedUpByCollision(collector)) return;
+			UiGiverBase uiInterface = GetComponent<UiGiverBase>();
+			if (uiInterface == null) {
 				SetPickedUp(collector);
 				return;
 			}
-			confirm.Invoke(gameObject);
-			// modal confirm
-			// progress bar
-			// modal confirm into progress bar
-			// puzzle
-			// request from partial owners
+			uiInterface.Invoke(gameObject);
 		}
 		public void SetPickedUp(GameObject collectorObject) {
 			InventoryCollector collector = collectorObject.GetComponent<InventoryCollector>();

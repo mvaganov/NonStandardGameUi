@@ -1,8 +1,9 @@
+using NonStandard.GameUi.Inventory;
 using NonStandard.Ui;
 using UnityEngine;
 
-namespace NonStandard.GameUi.Inventory {
-	public class ConfirmDialogGiver : EventGiver {
+namespace NonStandard.GameUi {
+	public class ConfirmDialogGiver : UiGiverBase {
 		class EventData {
 			public GameObject _instigator;
 			public ConfirmDialogGiver _dialogGiver;
