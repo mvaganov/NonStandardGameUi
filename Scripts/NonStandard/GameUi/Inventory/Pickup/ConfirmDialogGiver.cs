@@ -13,7 +13,11 @@ namespace NonStandard.GameUi.Inventory {
 				_dialogGiver = dialogGiver;
 				ModalConfirmation original = Global.GetComponent<ModalConfirmation>();
 				ui = Instantiate(original.gameObject).GetComponent<ModalConfirmation>();
-				ui.CancelOk(_dialogGiver.confirmDialogMessage, _dialogGiver.Cancel, _dialogGiver.Confirm, icon);
+				if (_dialogGiver.showCancelOption) {
+					ui.CancelOk(_dialogGiver.confirmDialogMessage, _dialogGiver.Cancel, _dialogGiver.Confirm, icon);
+				} else {
+					ui.Ok(_dialogGiver.confirmDialogMessage, _dialogGiver.Confirm, icon);
+				}
 				ui.transform.SetParent(original.transform.parent, false);
 				ui.gameObject.SetActive(true);
 			}
@@ -38,6 +42,7 @@ namespace NonStandard.GameUi.Inventory {
 		EventData confirmDialogData;
 		[Tooltip("-1 to never cancel regardless of distance")]
 		public float cancelOnMoveAwayDistance = -1;
+		public bool showCancelOption = true;
 		public string confirmDialogMessage;
 		override public void Invoke(GameObject collider) {
 			if (confirmDialogData != null) { return; }
