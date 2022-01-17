@@ -86,7 +86,7 @@ namespace NonStandard.GameUi.Inventory {
 		}
 		private void OnTriggerEnter(Collider other) {
 			Interactable invObj = other.GetComponent<Interactable>();
-			if (invObj == null) return;
+			if (invObj == null || !invObj.enabled) return;
 			Transform t = other.transform;
 			Vector3 delta = t.position - transform.position;
 			float dist = delta.magnitude;

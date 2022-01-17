@@ -2,5 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Interactable : MonoBehaviour {
+namespace NonStandard.GameUi {
+	public class Interactable : MonoBehaviour {
+	}
 }
