@@ -11,20 +11,21 @@ namespace NonStandard.GameUi.Inventory {
 		public Collider activeCollider;
 		public struct RangedTarget {
 			public Transform t;
+			public Interactable interactable;
 			public float range;
 			public override int GetHashCode() { return t.GetHashCode(); }
-			public RangedTarget(Transform what, float dist) { this.t = what; this.range = dist; }
+			public RangedTarget(Transform what, Interactable interactable, float dist) {
+				this.t = what; this.interactable = interactable; this.range = dist;
+			}
 		}
 		private void Start() {
 			sc = GetComponent<SphereCollider>();
 		}
 		void Update() {
-			List<RangedTarget> transformsOutOfRange = DrawTargetsAndFindOutOfRange();
-			if (transformsOutOfRange != null) {
-				transformsOutOfRange.ForEach(t => targets.Remove(t));
-			}
+			List<RangedTarget> transformsOutOfRange = DrawTargetsAndRemoveOutOfRange();
+			if (transformsOutOfRange != null) { transformsOutOfRange.ForEach(t => targets.Remove(t)); }
 		}
-		List<RangedTarget> DrawTargetsAndFindOutOfRange() {
+		List<RangedTarget> DrawTargetsAndRemoveOutOfRange() {
 			Vector3 pos = transform.position;
 			int index = 0;
 			List<RangedTarget> transformsOutOfRange = null;
@@ -34,7 +35,7 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			foreach (RangedTarget oa in targets) {
 				Wire w = wires[index++];
-				bool canPointAt = oa.t != null && oa.t.gameObject.activeInHierarchy;
+				bool canPointAt = oa.t != null && oa.t.gameObject.activeInHierarchy && oa.interactable.enabled;
 				if (canPointAt) {
 					Vector3 a, b;
 					if (activeCollider != null) {
@@ -50,9 +51,7 @@ namespace NonStandard.GameUi.Inventory {
 					}
 				} 
 				if (!canPointAt) {
-					if (transformsOutOfRange == null) {
-						transformsOutOfRange = new List<RangedTarget>();
-					}
+					if (transformsOutOfRange == null) { transformsOutOfRange = new List<RangedTarget>(); }
 					transformsOutOfRange.Add(oa);
 					w.gameObject.SetActive(false);
 				}
@@ -90,7 +89,7 @@ namespace NonStandard.GameUi.Inventory {
 			Transform t = other.transform;
 			Vector3 delta = t.position - transform.position;
 			float dist = delta.magnitude;
-			targets.Add(new RangedTarget(t, dist + 1f/128));
+			targets.Add(new RangedTarget(t, invObj, dist + 1f/128));
 		}
 	}
 }

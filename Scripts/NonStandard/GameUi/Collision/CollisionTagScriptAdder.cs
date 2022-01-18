@@ -35,7 +35,6 @@ public class CollisionTagScriptAdder {
 		string destination = System.IO.Path.GetFullPath(".") + dir + "Assets" + dir + folderName;
 		NonStandard.Utility.Define.Add("GENERATED_NONSTANDARD_TAGS");
 		if (System.IO.Directory.Exists(destination)) {
-			Debug.Log("got it!");
 			return;
 		}
 		Debug.Log("must move " + path + " to " + destination);

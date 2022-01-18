@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace NonStandard.GameUi {
@@ -7,7 +8,10 @@ namespace NonStandard.GameUi {
 		private void Start() {
 		}
 		public bool IsAllowedToInteract(GameObject otherGameObject) {
-			return (otherGameObject.layer & interactable) != interactable;
+			int otherGameObjectLayerMask = 1 << otherGameObject.layer;
+			bool allowed = (interactable & otherGameObjectLayerMask) != otherGameObjectLayerMask;
+			//Debug.Log(allowed + " " + otherGameObject.name+" "+Convert.ToString(flag, 2) + " v " + (int)interactable+" "+Convert.ToString(interactable, 2));
+			return allowed;
 		}
 		private void OnCollisionEnter(Collision collision) {
 			if (!enabled || IsAllowedToInteract(collision.gameObject)) return;
