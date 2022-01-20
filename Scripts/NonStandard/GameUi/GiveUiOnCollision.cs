@@ -2,14 +2,22 @@ using System;
 using UnityEngine;
 
 namespace NonStandard.GameUi {
-	public class ActivateUiOnCollision : Interactable {
-		// TODO triggered by collision system kind
-		public LayerMask interactable;
+	public class GiveUiOnCollision : Interactable {
+		public LayerMask interactableLayer = -1;
+		public CollisionTag[] interactableTags;
 		private void Start() {
 		}
 		public bool IsAllowedToInteract(GameObject otherGameObject) {
 			int otherGameObjectLayerMask = 1 << otherGameObject.layer;
-			bool allowed = (interactable & otherGameObjectLayerMask) != otherGameObjectLayerMask;
+			bool allowed = (interactableLayer & otherGameObjectLayerMask) != otherGameObjectLayerMask;
+			if (interactableTags != null && interactableTags.Length > 0) {
+				CollisionTagged tagged = otherGameObject.GetComponent<CollisionTagged>();
+				allowed = false;
+				if (tagged != null) {
+					int index = Array.IndexOf(interactableTags, tagged.kind);
+					allowed = index >= 0;
+				}
+			}
 			//Debug.Log(allowed + " " + otherGameObject.name+" "+Convert.ToString(flag, 2) + " v " + (int)interactable+" "+Convert.ToString(interactable, 2));
 			return allowed;
 		}
