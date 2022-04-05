@@ -1,9 +1,8 @@
-﻿using UnityEngine;
+﻿// code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
+using UnityEngine;
 
-namespace NonStandard.Character
-{
-	public class SuperCyanGlue : MonoBehaviour
-	{
+namespace NonStandard.Character {
+	public class SuperCyanGlue : MonoBehaviour {
 		public Animator animator;
 		[ContextMenuItem("Bind Events", "BindEvents")]
 		public Root root;
@@ -20,10 +19,14 @@ namespace NonStandard.Character
 				if (f) { root = f.whoToFollow.GetComponent<Root>(); }
 			}
 		}
+#if UNITY_EDITOR
 		public void BindEvents() {
 			Init();
 			if (root.callbacks == null) {
-				root.callbacks = root.gameObject.AddComponent<Callbacks>();
+				root.callbacks = root.gameObject.GetComponent<Callbacks>();
+				if (root.callbacks == null) {
+					root.callbacks = root.gameObject.AddComponent<Callbacks>();
+				}
 			}
 			Callbacks cb = root.callbacks;
 			EventBind.IfNotAlready(cb.jumped, this, nameof(Jump));
@@ -31,7 +34,10 @@ namespace NonStandard.Character
 			EventBind.IfNotAlready(cb.fall, this, nameof(Fall));
 			EventBind.IfNotAlready(cb.arrived, this, nameof(Wave));
 		}
-
+		private void OnValidate() {
+			BindEvents();
+		}
+#endif
 		bool shouldTriggerJumpAnimation = false;
 		public void Jump(Vector3 dir) {
 			//Show.Log("jump");
