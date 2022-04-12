@@ -13,12 +13,9 @@ namespace NonStandard.GameUi.Inventory {
 		/// intended for use by DataSheet
 		/// </summary>
 		/// <param name="data"></param>
-		public void DataPopulator(List<object> data) {
+		public void PopulateData(List<object> data) {
 			if (items == null) { return; }
-			data.Clear();
-			for(int i = 0; i < items.Count; ++i) {
-				data.Add(items[i]);
-			}
+			data.AddRange(items);
 		}
 		public List<InventoryItem> GetItems() { return items; }
 

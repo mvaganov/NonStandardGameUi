@@ -1,20 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &8380686395080478232
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8169848510218029673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 312c27f7bb909ce428d62936dff87980, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inventory: {fileID: 5966013771206448901}
-  autoPickup: 1
-  addAsChildTransform: 1
 --- !u!1 &6709840709839472967
 GameObject:
   m_ObjectHideFlags: 0
@@ -26,7 +11,7 @@ GameObject:
   - component: {fileID: 5990059622774145054}
   - component: {fileID: 5966013771206448901}
   m_Layer: 0
-  m_Name: Inventory
+  m_Name: Player Inventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -159,7 +144,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3672167016036120268, guid: 53b569fa1ec508e4ea6d0cb74a221a01, type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3672167016036120268, guid: 53b569fa1ec508e4ea6d0cb74a221a01, type: 3}
       propertyPath: m_AnchorMax.x
@@ -238,6 +223,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1072249257, guid: 53b569fa1ec508e4ea6d0cb74a221a01, type: 3}
   m_PrefabInstance: {fileID: 373530698130404535}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8380686395080478232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8169848510218029673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 312c27f7bb909ce428d62936dff87980, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventory: {fileID: 5966013771206448901}
+  autoPickup: 1
+  addAsChildTransform: 1
 --- !u!1001 &7084697127182435812
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -275,11 +275,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1918687035117217665, guid: d669d7f4d7c5d2546aff1c32ba079aec, type: 3}
       propertyPath: m_Size
-      value: 0.17880961
+      value: 0.2266633
       objectReference: {fileID: 0}
     - target: {fileID: 1918687035117217665, guid: d669d7f4d7c5d2546aff1c32ba079aec, type: 3}
       propertyPath: m_Value
-      value: 1.0466902
+      value: 1.000004
       objectReference: {fileID: 0}
     - target: {fileID: 1918687035117217670, guid: d669d7f4d7c5d2546aff1c32ba079aec, type: 3}
       propertyPath: m_AnchorMax.y
@@ -409,7 +409,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1918687035337730196, guid: d669d7f4d7c5d2546aff1c32ba079aec, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -10.832115
+      value: -0.0009533024
       objectReference: {fileID: 0}
     - target: {fileID: 1918687035343020718, guid: d669d7f4d7c5d2546aff1c32ba079aec, type: 3}
       propertyPath: columnSetup

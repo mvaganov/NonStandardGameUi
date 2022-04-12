@@ -9,6 +9,10 @@ namespace NonStandard.GameUi.Inventory {
 		public Color color = new Color(1, 1, 0, .5f);
 		SphereCollider sc;
 		public Collider activeCollider;
+
+		// TODO interactions are added to this list and show up in UI
+		public List<Interaction> interactions = new List<Interaction>();
+
 		public struct RangedTarget {
 			public Transform t;
 			public Interactable interactable;
