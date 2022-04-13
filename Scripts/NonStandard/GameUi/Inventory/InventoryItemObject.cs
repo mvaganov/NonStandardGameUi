@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
@@ -38,9 +39,23 @@ namespace NonStandard.GameUi.Inventory {
 				}
 			}
 		}
+
+		public void PickupItem(Interaction interaction) {
+			Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
+		}
+
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
 			if (collector == null || !rules.CanBePickedUpByCollision(collector)) return;
+			if (interactions == null) { interactions = new List<Interaction>(); }
+			if (interactions.Count == 0) {
+				Debug.Log("interaction for " + item.name+" and "+collector.name+"     ("+this+","+ nameof(PickupItem)+")");
+				interactions.Add(new Interaction(item.name, item.icon, 700,
+					//this, nameof(PickupItem),
+					new EventBind(this, nameof(PickupItem)),
+					new UnityEngine.Object[] { collector, this }));
+			}
+
 			UiGiverBase uiInterface = GetComponent<UiGiverBase>();
 			if (uiInterface == null) {
 				SetPickedUp(collector);

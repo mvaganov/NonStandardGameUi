@@ -10,8 +10,7 @@ namespace NonStandard.GameUi.Inventory {
 		SphereCollider sc;
 		public Collider activeCollider;
 
-		// TODO interactions are added to this list and show up in UI
-		public List<Interaction> interactions = new List<Interaction>();
+		public InteractionInterface actionUi;
 
 		public struct RangedTarget {
 			public Transform t;
