@@ -8,7 +8,13 @@ namespace NonStandard.GameUi {
 	[System.Serializable] public class Interaction {
 		public string text;
 		public Sprite icon;
-		[Tooltip("a function that has 2 objects interacting. the player (interactor) and object")]
-		public UnityEvent<object,object> interaction;
+		[Tooltip("[0] is the originator of the interaction")]
+		public object[] interactors;
+		[Tooltip("a function that has N objects interacting. the player (interactor[0]) and object(s)")]
+		public UnityEvent_objectL interaction;
+
+		[System.Serializable] public class UnityEvent_objectL : UnityEvent<object[]> { }
+
+		public void Activate() { interaction.Invoke(interactors); }
 	}
 }
