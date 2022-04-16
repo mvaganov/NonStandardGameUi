@@ -2,6 +2,7 @@
     "name": "nonstandard.gameui",
     "rootNamespace": "",
     "references": [
+        "GUID:967f836868f94d1418412ea7c9d893c1",
         "GUID:75469ad4d38634e559750d17036d5f7c",
         "GUID:853ba801afb743f47903e7966f8a9ca2",
         "GUID:6ee1dc0db5778894f86222e9eb7ab103",

@@ -1,4 +1,6 @@
+using NonStandard.Extension;
 using NonStandard.GameUi.DataSheet;
+using NonStandard.GameUi.Inventory;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,12 +15,31 @@ namespace NonStandard.GameUi {
 		public Dictionary<Interactable, List<Interaction>> actionsByInteractable =
 			new Dictionary<Interactable,List<Interaction>>();
 
-		public void Add(Interactable interactable) {
-			if(actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
+		public bool Remove(Interactable interactable) {
+			return actionsByInteractable.Remove(interactable);
+		}
+		public bool Remove(Interactable interactable, Interaction interaction) {
+			if (actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
+				int index = actionList.IndexOf(interaction);
+				if (index != -1) {
+					actionList.RemoveAt(index);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public void Add(Interactable interactable, IList<Interaction> interactions) {
+			if (interactions == null || interactions.Count == 0) { return; }
+			if (actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
+				Debug.Log("already got " + interactable);
+				actionList.AddRange(interactions);
 				return;
 			}
-			actionsByInteractable[interactable] = interactable.interactions;
-			actions.AddRange(interactable.interactions);
+			List<Interaction> toAdd = new List<Interaction>(interactions);
+			actionsByInteractable[interactable] = toAdd;
+			actions.AddRange(toAdd);
+			Debug.Log("ooh, +" + interactions.Count + " : " + actions.JoinToString(", ", i => i.text));
 			Sort();
 			dataSheet.Refresh();
 		}

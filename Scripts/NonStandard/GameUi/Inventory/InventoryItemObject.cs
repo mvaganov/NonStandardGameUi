@@ -44,17 +44,19 @@ namespace NonStandard.GameUi.Inventory {
 			Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
 		}
 
+		public List<Interaction> PickupInteractionsFor(InventoryCollector collector) {
+			List<Interaction> interactions = new List<Interaction>();
+			interactions.Add(new Interaction(item.name, item.icon, 700,
+				//this, nameof(PickupItem),
+				new EventBind(this, nameof(PickupItem)),
+				new UnityEngine.Object[] { collector, this }));
+			return interactions;
+		}
+
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
 			if (collector == null || !rules.CanBePickedUpByCollision(collector)) return;
-			if (interactions == null) { interactions = new List<Interaction>(); }
-			if (interactions.Count == 0) {
-				Debug.Log("interaction for " + item.name+" and "+collector.name+"     ("+this+","+ nameof(PickupItem)+")");
-				interactions.Add(new Interaction(item.name, item.icon, 700,
-					//this, nameof(PickupItem),
-					new EventBind(this, nameof(PickupItem)),
-					new UnityEngine.Object[] { collector, this }));
-			}
+			if (interactions == null) { interactions = PickupInteractionsFor(collector); }
 
 			UiGiverBase uiInterface = GetComponent<UiGiverBase>();
 			if (uiInterface == null) {

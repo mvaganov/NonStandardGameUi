@@ -9,7 +9,7 @@ namespace NonStandard.GameUi.Inventory {
 		public Color color = new Color(1, 1, 0, .5f);
 		SphereCollider sc;
 		public Collider activeCollider;
-
+		public InventoryCollector inventoryCollector;
 		public InteractionInterface actionUi;
 
 		public struct RangedTarget {
@@ -87,12 +87,24 @@ namespace NonStandard.GameUi.Inventory {
 			edgeB = rh.point;
 		}
 		private void OnTriggerEnter(Collider other) {
-			Interactable invObj = other.GetComponent<Interactable>();
-			if (invObj == null || !invObj.enabled) return;
+			Interactable interactable = other.GetComponent<Interactable>();
+			if (interactable == null || !interactable.enabled) return;
+			if (actionUi) {
+				switch (interactable) {
+					case InventoryItemObject invObj:
+						Debug.Log("item pickup " + invObj);
+						actionUi.Add(invObj, invObj.PickupInteractionsFor(inventoryCollector));
+						break;
+					default:
+						actionUi.Add(interactable, interactable.interactions);
+						break;
+				}
+			}
 			Transform t = other.transform;
 			Vector3 delta = t.position - transform.position;
 			float dist = delta.magnitude;
-			targets.Add(new RangedTarget(t, invObj, dist + 1f/128));
+			targets.Add(new RangedTarget(t, interactable, dist + 1f/128));
+
 		}
 	}
 }
