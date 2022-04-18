@@ -104,7 +104,6 @@ namespace NonStandard.GameUi.Inventory {
 			Vector3 delta = t.position - transform.position;
 			float dist = delta.magnitude;
 			targets.Add(new RangedTarget(t, interactable, dist + 1f/128));
-
 		}
 	}
 }

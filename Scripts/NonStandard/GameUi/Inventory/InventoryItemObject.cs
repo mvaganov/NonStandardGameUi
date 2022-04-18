@@ -41,7 +41,16 @@ namespace NonStandard.GameUi.Inventory {
 		}
 
 		public void PickupItem(Interaction interaction) {
-			Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
+			//Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
+			InventoryItemObject invObj = interaction.interactors[1] as InventoryItemObject;
+			if (invObj == null) {
+				throw new Exception("can't pick up " + interaction.interactors[1]);
+			}
+			InventoryCollector collector = interaction.interactors[0] as InventoryCollector;
+			if (collector == null) {
+				throw new Exception("can't pick up with " + interaction.interactors[0]);
+			}
+			invObj.SetPickedUp(collector);
 		}
 
 		public List<Interaction> PickupInteractionsFor(InventoryCollector collector) {
