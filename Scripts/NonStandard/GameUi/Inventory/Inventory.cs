@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using NonStandard.Data;
+using NonStandard.Extension;
+using NonStandard.GameUi.DataSheet;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
@@ -15,7 +18,12 @@ namespace NonStandard.GameUi.Inventory {
 		/// <param name="data"></param>
 		public void PopulateData(List<object> data) {
 			if (items == null) { return; }
+			//Debug.Log("items: ["+items.JoinToString(", ",i=>i.name)+"]");
 			data.AddRange(items);
+		}
+
+		public void NotifyReorder(List<RowData> reorderd) {
+			UnityDataSheet.NotifyReorder(reorderd, items);
 		}
 		public List<InventoryItem> GetItems() { return items; }
 

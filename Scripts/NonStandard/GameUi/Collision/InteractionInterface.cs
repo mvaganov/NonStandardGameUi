@@ -1,3 +1,4 @@
+// code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
 using NonStandard.Extension;
 using NonStandard.GameUi.DataSheet;
 using NonStandard.GameUi.Inventory;
@@ -6,6 +7,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace NonStandard.GameUi {
+	/// <summary>
+	/// stores interactions that are displayed in the UI
+	/// </summary>
 	public class InteractionInterface : MonoBehaviour {
 		public DataSheetWindow dataSheet;
 
@@ -39,7 +43,7 @@ namespace NonStandard.GameUi {
 			List<Interaction> toAdd = new List<Interaction>(interactions);
 			actionsByInteractable[interactable] = toAdd;
 			actions.AddRange(toAdd);
-			Debug.Log("ooh, +" + interactions.Count + " : " + actions.JoinToString(", ", i => i.text));
+			//Debug.Log("ooh, +" + interactions.Count + " : " + actions.JoinToString(", ", i => i.text));
 			Sort();
 			dataSheet.Refresh();
 		}
