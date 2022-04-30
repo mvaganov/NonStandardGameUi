@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
 	public class InventoryItemObject : Interactable {
+		[ContextMenuItem(nameof(GeneratePickup), nameof(GeneratePickup))]
 		public InventoryItem item = new InventoryItem();
 		public PickupRules rules = new PickupRules();
 		[System.Serializable] public class PickupRules {
@@ -41,32 +42,35 @@ namespace NonStandard.GameUi.Inventory {
 			}
 		}
 
-		public void PickupItem(Interaction interaction) {
+		public void GeneratePickup() {
+			interactions.AddRange(PickupInteractionsForSelf());
+		}
+
+		public void PickupItem(object subject, Interaction interaction) {
 			//Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
-			InventoryItemObject invObj = interaction.interactors[1] as InventoryItemObject;
+			InventoryItemObject invObj = interaction.source as InventoryItemObject;
 			if (invObj == null) {
-				throw new Exception("can't pick up " + interaction.interactors[1]);
+				throw new Exception("can't pick up " + interaction.source + " as " + nameof(InventoryItemObject));
 			}
-			InventoryCollector collector = interaction.interactors[0] as InventoryCollector;
+			InventoryCollector collector = subject as InventoryCollector;
 			if (collector == null) {
-				throw new Exception("can't pick up with " + interaction.interactors[0]);
+				throw new Exception("can't collect inventory with " + subject);
 			}
 			invObj.SetPickedUp(collector);
 		}
 
-		public List<Interaction> PickupInteractionsFor(InventoryCollector collector) {
+		public List<Interaction> PickupInteractionsForSelf() {
 			List<Interaction> interactions = new List<Interaction>();
-			interactions.Add(new Interaction(item.name, item.icon, 700,
+			interactions.Add(new Interaction(this, item.name, item.icon, 700,
 				//this, nameof(PickupItem),
-				new EventBind(this, nameof(PickupItem)),
-				new UnityEngine.Object[] { collector, this }));
+				new EventBind(this, nameof(PickupItem))));
 			return interactions;
 		}
 
 		public void PickupRequestBy(GameObject gameObject) {
 			InventoryCollector collector = gameObject.GetComponent<InventoryCollector>();
 			if (collector == null || !rules.CanBePickedUpByCollision(collector)) return;
-			if (interactions == null) { interactions = PickupInteractionsFor(collector); }
+			//if (interactions == null) { interactions = PickupInteractionsFor(); }
 
 			UiGiverBase uiInterface = GetComponent<UiGiverBase>();
 			if (uiInterface == null) {

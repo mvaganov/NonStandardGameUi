@@ -1,10 +1,8 @@
 // code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
-using NonStandard.Extension;
 using NonStandard.GameUi.DataSheet;
-using NonStandard.GameUi.Inventory;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace NonStandard.GameUi {
 	/// <summary>
@@ -20,9 +18,17 @@ namespace NonStandard.GameUi {
 			new Dictionary<Interactable,List<Interaction>>();
 
 		public bool Remove(Interactable interactable) {
-			return actionsByInteractable.Remove(interactable);
+			bool removed = false;
+			for(int i = 0; i < interactable.interactions.Count; ++i) {
+				Interaction interaction = interactable.interactions[i];
+				interaction.onAction -= IntractionUsed;
+				removed |= actions.Remove(interaction);
+			}
+			return actionsByInteractable.Remove(interactable) || removed;
 		}
+
 		public bool Remove(Interactable interactable, Interaction interaction) {
+			interaction.onAction -= IntractionUsed;
 			if (actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
 				int index = actionList.IndexOf(interaction);
 				if (index != -1) {
@@ -30,22 +36,63 @@ namespace NonStandard.GameUi {
 					return true;
 				}
 			}
+			RefreshInteractionUsability();
 			return false;
+		}
+
+		public bool Remove(Interaction interaction) {
+			interaction.onAction -= IntractionUsed;
+			bool removed = false;
+			foreach (KeyValuePair<Interactable, List<Interaction>> kvp in actionsByInteractable) {
+				removed |= kvp.Value.Remove(interaction);
+			}
+			return actions.Remove(interaction) || removed;
 		}
 
 		public void Add(Interactable interactable, IList<Interaction> interactions) {
 			if (interactions == null || interactions.Count == 0) { return; }
-			if (actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
+			if (interactable != null && actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
 				Debug.Log("already got " + interactable);
+				actionList.ForEach(i => {
+					i.onAction -= IntractionUsed;
+					i.onAction += IntractionUsed;
+				});
 				actionList.AddRange(interactions);
 				return;
 			}
 			List<Interaction> toAdd = new List<Interaction>(interactions);
+			toAdd.ForEach(i => {
+				i.onAction -= IntractionUsed;
+				i.onAction += IntractionUsed;
+			});
 			actionsByInteractable[interactable] = toAdd;
 			actions.AddRange(toAdd);
 			//Debug.Log("ooh, +" + interactions.Count + " : " + actions.JoinToString(", ", i => i.text));
 			Sort();
 			dataSheet.Refresh();
+			RefreshInteractionUsability();
+		}
+
+		private void IntractionUsed(Interaction interaction) {
+			switch (interaction.howItIsRemoved) {
+				case Interaction.HowItIsRemoved.Consumed:
+					Remove(interaction);
+					dataSheet.Refresh();
+					break;
+			}
+			RefreshInteractionUsability();
+		}
+
+		public void RefreshInteractionUsability() {
+			for (int i = 0; i < actions.Count; i++) {
+				Interaction a = actions[i];
+				DataSheetRow rowUi = dataSheet.RowUi(a);
+				if (rowUi == null) {
+					Debug.LogWarning("no UI for " + a.text + "?");
+					continue;
+				}
+				System.Array.ForEach(rowUi.GetComponentsInChildren<Button>(), b=>b.interactable = a.IsActivatable());
+			}
 		}
 
 		private int CompareInteractions(Interaction a, Interaction b) {
