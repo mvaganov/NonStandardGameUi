@@ -75,7 +75,10 @@ namespace NonStandard.GameUi {
 		//public void Activate() { Debug.Log("activate with no args"); }
 
 		public void Activate(object activator) {
-			Debug.Log("activate with " + activator);
+			if (activator == null) {
+				Debug.Log("it's null...");
+			}
+			Debug.Log("activate with [" + activator + "]");
 			if (delayTimer > 0) { return; }
 			action.Invoke(activator, this);
 			onAction?.Invoke(this);
