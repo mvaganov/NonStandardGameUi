@@ -6,31 +6,48 @@ using UnityEngine.UI;
 
 namespace NonStandard.GameUi {
 	/// <summary>
-	/// stores interactions that are displayed in the UI
+	/// stores efforts that are displayed in the UI. Efforts can be done to a thing by the owner of this interface
 	/// </summary>
 	public class InteractionInterface : MonoBehaviour {
 		public DataSheetWindow dataSheet;
+		public UnityEngine.Object owner;
 
 		// TODO reordering the list in the DataSheet UI should reorder this list.
-		public List<Interaction> actions = new List<Interaction>();
+		public List<Effort> efforts = new List<Effort>();
 
-		public Dictionary<Interactable, List<Interaction>> actionsByInteractable =
-			new Dictionary<Interactable,List<Interaction>>();
+		public Dictionary<Interactable, List<Effort>> effortsByThing = new Dictionary<Interactable,List<Effort>>();
 
+		/// <summary>
+		/// removes every specific effort ready to be done on the given interactable
+		/// </summary>
+		/// <param name="interactable"></param>
+		/// <returns></returns>
 		public bool Remove(Interactable interactable) {
 			bool removed = false;
 			for(int i = 0; i < interactable.interactions.Count; ++i) {
-				Interaction interaction = interactable.interactions[i];
-				interaction.onAction -= IntractionUsed;
-				removed |= actions.Remove(interaction);
+				WayOfActing interaction = interactable.interactions[i];
+				int index = SpecificEffortIndex(interaction);
+				if (index >= 0) {
+					Effort effort = efforts[index];
+					effort.onAction -= IntractionUsed;
+					efforts.RemoveAt(index);
+					removed = true;
+				}
 			}
-			return actionsByInteractable.Remove(interactable) || removed;
+			return effortsByThing.Remove(interactable) || removed;
 		}
 
-		public bool Remove(Interactable interactable, Interaction interaction) {
-			interaction.onAction -= IntractionUsed;
-			if (actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
-				int index = actionList.IndexOf(interaction);
+		public int SpecificEffortIndex(WayOfActing generalWayOfActing) {
+			return efforts.FindIndex(eff => eff.act == generalWayOfActing);
+		}
+
+		public bool Remove(Interactable interactable, WayOfActing wayOfActing) {
+			int index = SpecificEffortIndex(wayOfActing);
+			if (index >= 0) {
+				efforts[index].onAction -= IntractionUsed;
+			}
+			if (effortsByThing.TryGetValue(interactable, out List<Effort> actionList)) {
+				index = actionList.FindIndex(e => e.act == wayOfActing);
 				if (index != -1) {
 					actionList.RemoveAt(index);
 					return true;
@@ -39,43 +56,64 @@ namespace NonStandard.GameUi {
 			RefreshInteractionUsability();
 			return false;
 		}
-
-		public bool Remove(Interaction interaction) {
-			interaction.onAction -= IntractionUsed;
+		public bool Remove(WayOfActing wayOfActing) {
+			int index = SpecificEffortIndex(wayOfActing);
+			if (index < 0) return false;
+			return Remove(efforts[index]);
+		}
+		public bool Remove(Effort effort) {
+			int index = efforts.IndexOf(effort);
 			bool removed = false;
-			foreach (KeyValuePair<Interactable, List<Interaction>> kvp in actionsByInteractable) {
-				removed |= kvp.Value.Remove(interaction);
+			if (index >= 0) {
+				efforts[index].onAction -= IntractionUsed;
+				efforts.RemoveAt(index);
+				removed = true;
 			}
-			return actions.Remove(interaction) || removed;
+			foreach (KeyValuePair<Interactable, List<Effort>> kvp in effortsByThing) {
+				index = kvp.Value.IndexOf(effort);
+				if (index == -1) { continue; }
+				kvp.Value[index].onAction -= IntractionUsed;
+				kvp.Value.RemoveAt(index);
+				removed = true;
+			}
+			return removed;
 		}
 
-		public void Add(Interactable interactable, IList<Interaction> interactions) {
+		public List<Effort> CreateEffortBy(IList<WayOfActing> acts, object actor) {
+			List<Effort> efforts = new List<Effort>();
+			for (int i = 0; i < acts.Count; i++) {
+				efforts.Add(acts[i].ActedBy(actor));
+			}
+			return efforts;
+		}
+
+		public void Add(Interactable theThing, IList<WayOfActing> interactions) {
 			if (interactions == null || interactions.Count == 0) { return; }
-			if (interactable != null && actionsByInteractable.TryGetValue(interactable, out List<Interaction> actionList)) {
-				Debug.Log("already got " + interactable);
-				actionList.ForEach(i => {
+			if (theThing != null && effortsByThing.TryGetValue(theThing, out List<Effort> effortsForTheThing)) {
+				Debug.Log("already got " + theThing);
+				effortsForTheThing.ForEach(i => {
 					i.onAction -= IntractionUsed;
 					i.onAction += IntractionUsed;
 				});
-				actionList.AddRange(interactions);
+				effortsForTheThing.AddRange(CreateEffortBy(interactions, owner));
 				return;
 			}
-			List<Interaction> toAdd = new List<Interaction>(interactions);
+			List<Effort> toAdd = new List<Effort>(CreateEffortBy(interactions, owner));
 			toAdd.ForEach(i => {
 				i.onAction -= IntractionUsed;
 				i.onAction += IntractionUsed;
 			});
-			actionsByInteractable[interactable] = toAdd;
-			actions.AddRange(toAdd);
+			effortsByThing[theThing] = toAdd;
+			efforts.AddRange(toAdd);
 			//Debug.Log("ooh, +" + interactions.Count + " : " + actions.JoinToString(", ", i => i.text));
 			Sort();
 			dataSheet.Refresh();
 			RefreshInteractionUsability();
 		}
 
-		private void IntractionUsed(Interaction interaction) {
-			switch (interaction.howItIsRemoved) {
-				case Interaction.HowItIsRemoved.Consumed:
+		private void IntractionUsed(Effort interaction) {
+			switch (interaction.act.howItIsRemoved) {
+				case WayOfActing.HowItIsRemoved.Consumed:
 					Remove(interaction);
 					dataSheet.Refresh();
 					break;
@@ -84,28 +122,28 @@ namespace NonStandard.GameUi {
 		}
 
 		public void RefreshInteractionUsability() {
-			for (int i = 0; i < actions.Count; i++) {
-				Interaction a = actions[i];
-				DataSheetRow rowUi = dataSheet.RowUi(a);
+			for (int i = 0; i < efforts.Count; i++) {
+				Effort effort = efforts[i];
+				DataSheetRow rowUi = dataSheet.RowUi(effort);
 				if (rowUi == null) {
-					Debug.LogWarning("no UI for " + a.text + "?");
+					Debug.LogWarning("no UI for " + effort.act.text + "?");
 					continue;
 				}
-				System.Array.ForEach(rowUi.GetComponentsInChildren<Button>(), b=>b.interactable = a.IsActivatable());
+				System.Array.ForEach(rowUi.GetComponentsInChildren<Button>(), b=>b.interactable = effort.IsActivatable());
 			}
 		}
 
-		private int CompareInteractions(Interaction a, Interaction b) {
-			return a.priority.CompareTo(b.priority);
+		private int CompareInteractions(Effort a, Effort b) {
+			return a.act.priority.CompareTo(b.act.priority);
 		}
 
 		public void Sort() {
-			actions.Sort(CompareInteractions);
+			efforts.Sort(CompareInteractions);
 		}
 
 		public void PopulateData(List<object> out_data) {
 			if (out_data == null) { return; }
-			out_data.AddRange(actions);
+			out_data.AddRange(efforts);
 		}
 	}
 }

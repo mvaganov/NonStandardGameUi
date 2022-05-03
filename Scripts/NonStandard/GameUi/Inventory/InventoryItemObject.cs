@@ -46,22 +46,23 @@ namespace NonStandard.GameUi.Inventory {
 			interactions.AddRange(PickupInteractionsForSelf());
 		}
 
-		public void PickupItem(object subject, Interaction interaction) {
+		public void PickupItem(Effort interaction) {
 			//Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
-			InventoryItemObject invObj = interaction.source as InventoryItemObject;
+			InventoryItemObject invObj = interaction.act.source as InventoryItemObject;
 			if (invObj == null) {
-				throw new Exception("can't pick up " + interaction.source + " as " + nameof(InventoryItemObject));
+				throw new Exception("can't pick up " + interaction.act.source + " as " + nameof(InventoryItemObject));
 			}
-			InventoryCollector collector = subject as InventoryCollector;
+			InventoryCollector collector = interaction.actor as InventoryCollector;
 			if (collector == null) {
-				throw new Exception("can't collect inventory with " + subject);
+				throw new Exception("can't collect inventory with " + interaction.actor);
 			}
 			invObj.SetPickedUp(collector);
 		}
 
-		public List<Interaction> PickupInteractionsForSelf() {
-			List<Interaction> interactions = new List<Interaction>();
-			interactions.Add(new Interaction(this, item.name, item.icon, 700,
+		// TODO rename CreatePickupWaysOfActing
+		public List<WayOfActing> PickupInteractionsForSelf() {
+			List<WayOfActing> interactions = new List<WayOfActing>();
+			interactions.Add(new WayOfActing(this, item.name, item.icon, 700,
 				//this, nameof(PickupItem),
 				new EventBind(this, nameof(PickupItem))));
 			return interactions;

@@ -1,3 +1,4 @@
+// code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,7 +6,59 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace NonStandard.GameUi {
-	[System.Serializable] public class Interaction {
+	public class Effort {
+		/// <summary>
+		/// the interaction to do, not including the actor doing the act
+		/// </summary>
+		public WayOfActing act;
+		/// <summary>
+		/// who or what is doing the interaction
+		/// </summary>
+		public object actor;
+		/// <summary>
+		/// how long this action has left to wait before it can activate
+		/// </summary>
+		private float delayTimer;
+		public bool invalid;
+		public Action<Effort> onAction;
+
+		public Effort(object actor, WayOfActing act) {
+			this.actor = actor;
+			this.act = act;
+			Start();
+		}
+
+		public void Start() {
+			delayTimer = act.FindWarmUp();
+		}
+
+		public void Activate(object activator) {
+			if (activator == null) {
+				Debug.Log("it's null...");
+			}
+			Debug.Log("activate with [" + activator + "]");
+			Activate();
+		}
+
+		public bool IsActivatable() {
+			return !invalid && delayTimer <= 0;
+		}
+		public void Update() {
+			delayTimer -= Time.deltaTime;
+		}
+
+		public void Activate() {
+			if (delayTimer > 0) { return; }
+			act.action.Invoke(this);
+			onAction?.Invoke(this);
+			if (act.howItIsRemoved == WayOfActing.HowItIsRemoved.Consumed) {
+				invalid = true;
+			}
+			delayTimer = act.FindCooldown();
+		}
+	}
+
+	[System.Serializable] public class WayOfActing {
 		public string text;
 		public UnityEngine.Object source;
 		public Sprite icon;
@@ -14,33 +67,21 @@ namespace NonStandard.GameUi {
 		[Tooltip("a function that has N objects interacting. the player (interactor[0]) and object(s)")]
 		public UnityEvent_SubjectInteraction action;
 		public HowItIsRemoved howItIsRemoved = HowItIsRemoved.Consumed;
-		/// <summary>
-		/// how long this action has left to wait before it can activate
-		/// </summary>
-		private float delayTimer;
-		private DelayRule _cooldown;
-		private DelayRule _warmup;
-		public DelayRule[] delayRules;
-		public Action<Interaction> onAction;
-		public bool invalid;
 
+		public DelayRule[] delayRules;
 		[System.Serializable] public class DelayRule {
 			public enum Kind { None, Cooldown, WarmUp }
 			public Kind kind;
-			public float time = 0;
+			public float value = 0;
 		}
 
 		public enum HowItIsRemoved { None, Consumed, LostIfTooFar }
 		/// <summary>
 		/// (object subjectDoingInteraction, Interaction theInteractionBeingDone)
 		/// </summary>
-		[System.Serializable] public class UnityEvent_SubjectInteraction : UnityEvent<object, Interaction> { }
+		[System.Serializable] public class UnityEvent_SubjectInteraction : UnityEvent<Effort> { }
 
-		public static void HowRemoved_Consumed(Interaction interaction, InteractionInterface interactionInterface) {
-			interactionInterface.actions.Remove(interaction);
-		}
-
-		public Interaction(UnityEngine.Object source, string text, Sprite icon, float priority, EventBind eventBind) {
+		public WayOfActing(UnityEngine.Object source, string text, Sprite icon, float priority, EventBind eventBind) {
 			this.source = source;
 			this.text = text;
 			this.icon = icon;
@@ -48,50 +89,14 @@ namespace NonStandard.GameUi {
 			if (action == null) { action = new UnityEvent_SubjectInteraction(); }
 			//EventBind.IfNotAlready(action, target, methodName);
 			eventBind.Bind(action);
-			Start();
 		}
-
-		public void Start() {
-			RefreshDelayRules();
-			if (_warmup != null) {
-				delayTimer = _warmup.time;
-			}
-		}
-
-		public void RefreshDelayRules() {
-			if (delayRules == null) return;
-			for (int i = 0; i < delayRules.Length; i++) {
-				switch (delayRules[i].kind) {
-					case DelayRule.Kind.Cooldown: _cooldown = delayRules[i]; break;
-					case DelayRule.Kind.WarmUp: _warmup = delayRules[i]; break;
-				}
-			}
-		}
-
-		public void Update() {
-			delayTimer -= Time.deltaTime;
-		}
-
-		//public void Activate() { Debug.Log("activate with no args"); }
-
-		public void Activate(object activator) {
-			if (activator == null) {
-				Debug.Log("it's null...");
-			}
-			Debug.Log("activate with [" + activator + "]");
-			if (delayTimer > 0) { return; }
-			action.Invoke(activator, this);
-			onAction?.Invoke(this);
-			if (howItIsRemoved == HowItIsRemoved.Consumed) {
-				invalid = true;
-			}
-			if (_cooldown != null) {
-				delayTimer = _cooldown.time;
-			}
-		}
-
-		public bool IsActivatable() {
-			return !invalid && delayTimer <= 0;
+		public Effort ActedBy(object actor) => new Effort(actor, this);
+		public float FindWarmUp() => FindValue(DelayRule.Kind.WarmUp);
+		public float FindCooldown() => FindValue(DelayRule.Kind.Cooldown);
+		public float FindValue(DelayRule.Kind kind) {
+			int index = Array.FindIndex(delayRules, r => r.kind == kind);
+			if (index < 0) return 0;
+			return delayRules[index].value;
 		}
 	}
 }

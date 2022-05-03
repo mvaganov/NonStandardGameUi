@@ -5,6 +5,6 @@ using UnityEngine;
 
 namespace NonStandard.GameUi {
 	public class Interactable : MonoBehaviour {
-		public List<Interaction> interactions = new List<Interaction>();
+		public List<WayOfActing> interactions = new List<WayOfActing>();
 	}
 }
