@@ -6,9 +6,12 @@ using UnityEngine.UI;
 
 namespace NonStandard.GameUi {
 	/// <summary>
-	/// stores efforts that are displayed in the UI. Efforts can be done to a thing by the owner of this interface
+	/// stores efforts that are displayed in the UI. Efforts can be done to a thing by the owner of this interface.
+	/// A <see cref="Effort"/> object is an action on a subject done by an actor.
+	/// A <see cref="WayOfActing"/> object is an action on a subject without an actor to do the action
+	/// A <see cref="Interactable"/> object can carry <see cref="WayOfActing"/> objects, which it is the subject of
 	/// </summary>
-	public class InteractionInterface : MonoBehaviour {
+	public class EffortInterface : MonoBehaviour {
 		public DataSheetWindow dataSheet;
 		public UnityEngine.Object owner;
 
@@ -126,12 +129,30 @@ namespace NonStandard.GameUi {
 				Effort effort = efforts[i];
 				DataSheetRow rowUi = dataSheet.RowUi(effort);
 				if (rowUi == null) {
-					Debug.LogWarning("no UI for " + effort.act.text + "?");
+					//Debug.LogWarning("UI not yet loaded for " + effort.act.text + "?");
 					continue;
 				}
 				System.Array.ForEach(rowUi.GetComponentsInChildren<Button>(), b=>b.interactable = effort.IsActivatable());
 			}
 		}
+
+		public void Update() {
+			for (int i = 0; i < efforts.Count; i++) {
+				Effort effort = efforts[i];
+				effort.Update();
+				DataSheetRow rowUi = dataSheet.RowUi(effort);
+				if (rowUi == null) {
+					//Debug.LogWarning("UI not yet loaded for " + effort.act.text + "?");
+					continue;
+				}
+				bool activatable = effort.IsActivatable();
+				if (effort.activatableLastFrame != activatable) {
+					System.Array.ForEach(rowUi.GetComponentsInChildren<Button>(), b => b.interactable = activatable);
+					effort.activatableLastFrame = activatable;
+				}
+			}
+		}
+
 
 		private int CompareInteractions(Effort a, Effort b) {
 			return a.act.priority.CompareTo(b.act.priority);

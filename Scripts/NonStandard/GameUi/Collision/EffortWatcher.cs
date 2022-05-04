@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace NonStandard.GameUi.Inventory {
-	public class InteractionWatcher : MonoBehaviour {
+	public class EffortWatcher : MonoBehaviour {
 		public HashSet<RangedTarget> targets = new HashSet<RangedTarget>();
 		List<Wire> wires = new List<Wire>();
 		public Color color = new Color(1, 1, 0, .5f);
 		SphereCollider sc;
 		public Collider activeCollider;
 		public InventoryCollector inventoryCollector;
-		public InteractionInterface actionUi;
+		public EffortInterface actionUi;
 
 		public struct RangedTarget {
 			public Transform t;

@@ -43,11 +43,10 @@ namespace NonStandard.GameUi.Inventory {
 		}
 
 		public void GeneratePickup() {
-			interactions.AddRange(PickupInteractionsForSelf());
+			interactions.AddRange(GenerateDefaultPickupActions());
 		}
 
 		public void PickupItem(Effort interaction) {
-			//Debug.Log("TODO pick up item, and remove this interaction from the interaction listing.");
 			InventoryItemObject invObj = interaction.act.source as InventoryItemObject;
 			if (invObj == null) {
 				throw new Exception("can't pick up " + interaction.act.source + " as " + nameof(InventoryItemObject));
@@ -59,8 +58,7 @@ namespace NonStandard.GameUi.Inventory {
 			invObj.SetPickedUp(collector);
 		}
 
-		// TODO rename CreatePickupWaysOfActing
-		public List<WayOfActing> PickupInteractionsForSelf() {
+		public List<WayOfActing> GenerateDefaultPickupActions() {
 			List<WayOfActing> interactions = new List<WayOfActing>();
 			interactions.Add(new WayOfActing(this, item.name, item.icon, 700,
 				//this, nameof(PickupItem),

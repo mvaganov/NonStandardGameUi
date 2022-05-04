@@ -20,7 +20,10 @@ namespace NonStandard.GameUi {
 		/// </summary>
 		private float delayTimer;
 		public bool invalid;
+		public bool activatableLastFrame;
+		public bool isOutOfRange;
 		public Action<Effort> onAction;
+		public Action<Effort> onUpdate;
 
 		public Effort(object actor, WayOfActing act) {
 			this.actor = actor;
@@ -36,15 +39,17 @@ namespace NonStandard.GameUi {
 			if (activator == null) {
 				Debug.Log("it's null...");
 			}
-			Debug.Log("activate with [" + activator + "]");
+			//Debug.Log("activate with [" + activator + "]");
 			Activate();
 		}
 
 		public bool IsActivatable() {
-			return !invalid && delayTimer <= 0;
+			return !invalid && !isOutOfRange && delayTimer <= 0;
 		}
+
 		public void Update() {
 			delayTimer -= Time.deltaTime;
+			onUpdate?.Invoke(this);
 		}
 
 		public void Activate() {
