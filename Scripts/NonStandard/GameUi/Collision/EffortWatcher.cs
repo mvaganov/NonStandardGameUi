@@ -90,15 +90,7 @@ namespace NonStandard.GameUi.Inventory {
 			Interactable interactable = other.GetComponent<Interactable>();
 			if (interactable == null || !interactable.enabled) return;
 			if (actionUi) {
-				//switch (interactable) {
-				//	case InventoryItemObject invObj:
-				//		Debug.Log("item pickup " + invObj);
-				//		actionUi.Add(invObj, invObj.PickupInteractionsFor(inventoryCollector));
-				//		break;
-				//	default:
-						actionUi.Add(interactable, interactable.interactions);
-				//		break;
-				//}
+				actionUi.Add(interactable, interactable.interactions);
 			}
 			Transform t = other.transform;
 			Vector3 delta = t.position - transform.position;

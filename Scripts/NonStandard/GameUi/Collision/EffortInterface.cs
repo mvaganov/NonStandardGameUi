@@ -1,4 +1,5 @@
 // code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
+using NonStandard.Data;
 using NonStandard.GameUi.DataSheet;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +16,6 @@ namespace NonStandard.GameUi {
 		public DataSheetWindow dataSheet;
 		public UnityEngine.Object owner;
 
-		// TODO reordering the list in the DataSheet UI should reorder this list.
 		public List<Effort> efforts = new List<Effort>();
 
 		public Dictionary<Interactable, List<Effort>> effortsByThing = new Dictionary<Interactable,List<Effort>>();
@@ -165,6 +165,10 @@ namespace NonStandard.GameUi {
 		public void PopulateData(List<object> out_data) {
 			if (out_data == null) { return; }
 			out_data.AddRange(efforts);
+		}
+
+		public void NotifyReorder(List<RowData> reorderd) {
+			UnityDataSheet.NotifyReorder(reorderd, efforts);
 		}
 	}
 }
