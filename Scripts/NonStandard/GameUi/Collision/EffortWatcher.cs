@@ -15,10 +15,11 @@ namespace NonStandard.GameUi.Inventory {
 		public struct RangedTarget {
 			public Transform t;
 			public Interactable interactable;
+			public System.Action onOutOfRange;
 			public float range;
 			public override int GetHashCode() { return t.GetHashCode(); }
-			public RangedTarget(Transform what, Interactable interactable, float dist) {
-				this.t = what; this.interactable = interactable; this.range = dist;
+			public RangedTarget(Transform what, Interactable interactable, float dist, System.Action onOutOfRange) {
+				this.t = what; this.interactable = interactable; this.range = dist; this.onOutOfRange = onOutOfRange;
 			}
 		}
 		private void Start() {
@@ -26,7 +27,13 @@ namespace NonStandard.GameUi.Inventory {
 		}
 		void Update() {
 			List<RangedTarget> transformsOutOfRange = DrawTargetsAndRemoveOutOfRange();
-			if (transformsOutOfRange != null) { transformsOutOfRange.ForEach(t => targets.Remove(t)); }
+			if (transformsOutOfRange != null) {
+				transformsOutOfRange.ForEach(RemoveTarget);
+			}
+		}
+		private void RemoveTarget(RangedTarget t) {
+			targets.Remove(t);
+			t.onOutOfRange?.Invoke();
 		}
 		List<RangedTarget> DrawTargetsAndRemoveOutOfRange() {
 			Vector3 pos = transform.position;
@@ -89,13 +96,22 @@ namespace NonStandard.GameUi.Inventory {
 		private void OnTriggerEnter(Collider other) {
 			Interactable interactable = other.GetComponent<Interactable>();
 			if (interactable == null || !interactable.enabled) return;
+			System.Action onOutOfRange = null;
 			if (actionUi) {
 				actionUi.Add(interactable, interactable.interactions);
+				bool removeActionIfOutOfRange = !interactable.stickyActionInEffortBar;
+				if (removeActionIfOutOfRange) {
+					onOutOfRange = () => {
+						//Debug.Log("removing "+interactable.name+" actions...");
+						actionUi.Remove(interactable);
+						actionUi.RefreshUi();
+					};
+				}
 			}
 			Transform t = other.transform;
 			Vector3 delta = t.position - transform.position;
 			float dist = delta.magnitude;
-			targets.Add(new RangedTarget(t, interactable, dist + 1f/128));
+			targets.Add(new RangedTarget(t, interactable, dist + 1f/128, onOutOfRange));
 		}
 	}
 }

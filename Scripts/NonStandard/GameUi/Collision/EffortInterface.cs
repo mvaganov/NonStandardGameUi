@@ -1,5 +1,6 @@
 // code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
 using NonStandard.Data;
+using NonStandard.Extension;
 using NonStandard.GameUi.DataSheet;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,13 +32,23 @@ namespace NonStandard.GameUi {
 				WayOfActing interaction = interactable.interactions[i];
 				int index = SpecificEffortIndex(interaction);
 				if (index >= 0) {
+					//Debug.Log(index);
 					Effort effort = efforts[index];
 					effort.onAction -= IntractionUsed;
 					efforts.RemoveAt(index);
 					removed = true;
+				//} else {
+				//	Debug.Log(interaction+" not in "+efforts.Stringify());
 				}
 			}
+			//if (!removed) {
+			//	Debug.Log(interactable+" not found in "+ efforts.Stringify());
+			//}
 			return effortsByThing.Remove(interactable) || removed;
+		}
+
+		public void RefreshUi() {
+			dataSheet.Refresh();
 		}
 
 		public int SpecificEffortIndex(WayOfActing generalWayOfActing) {
@@ -93,7 +104,7 @@ namespace NonStandard.GameUi {
 		public void Add(Interactable theThing, IList<WayOfActing> interactions) {
 			if (interactions == null || interactions.Count == 0) { return; }
 			if (theThing != null && effortsByThing.TryGetValue(theThing, out List<Effort> effortsForTheThing)) {
-				Debug.Log("already got " + theThing);
+				//Debug.Log("already got " + theThing);
 				effortsForTheThing.ForEach(i => {
 					i.onAction -= IntractionUsed;
 					i.onAction += IntractionUsed;
