@@ -60,6 +60,12 @@ namespace NonStandard.GameUi {
 		public float duration = 3;
 		public string progressText;
 
+		public ProgressBar.UnityEvent_float OnProgress = new ProgressBar.UnityEvent_float();
+
+		public void OnProgressNotify(float progress) {
+			OnProgress.Invoke(progress);
+		}
+
 		override public void Invoke(GameObject collider) {
 			if (progressionData != null) { return; }
 			//Sprite icon = null;
@@ -69,6 +75,10 @@ namespace NonStandard.GameUi {
 			//}
 			progressionData = new EventData(this, collider);
 			progressionData.Start();
+			if (progressionData.ui.onProgress == null) {
+				progressionData.ui.onProgress = new ProgressBar.UnityEvent_float();
+			}
+			EventBind.IfNotAlready(progressionData.ui.onProgress, this, nameof(OnProgressNotify));
 		}
 		public void FixedUpdate() {
 			if (progressionData == null || !progressionData.active) { return; }

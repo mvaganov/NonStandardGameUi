@@ -26,6 +26,7 @@ namespace NonStandard.GameUi.Inventory {
 			UnityDataSheet.NotifyReorder(reorderd, items);
 		}
 		public List<InventoryItem> GetItems() { return items; }
+		public InventoryItem GetItem(int index) { return items[index]; }
 
 		public void ActivateGameObject(object itemObject) {
 			//Debug.Log("activate " + itemObject);
@@ -104,9 +105,12 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			return inv;
 		}
-		internal InventoryItem RemoveItemWithoutNotify(object itemObject) {
+		public int IndexOf(object itemObject) {
 			InventoryItem inv = FindInventoryItemToAdd(itemObject, false);
-			int index = inv != null ? items.IndexOf(inv) : -1;
+			return inv != null ? items.IndexOf(inv) : -1;
+		}
+		internal InventoryItem RemoveItemWithoutNotify(object itemObject) {
+			int index = IndexOf(itemObject);
 			if (index < 0) {
 				Debug.LogWarning(this + " does not contain item " + itemObject);
 				return null;

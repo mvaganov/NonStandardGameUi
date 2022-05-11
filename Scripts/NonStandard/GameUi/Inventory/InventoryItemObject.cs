@@ -1,7 +1,10 @@
 // code by michael vaganov, released to the public domain via the unlicense (https://unlicense.org/)
+
+using NonStandard.Extension;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace NonStandard.GameUi.Inventory {
 	public class InventoryItemObject : Interactable {
@@ -55,7 +58,26 @@ namespace NonStandard.GameUi.Inventory {
 			if (collector == null) {
 				throw new Exception("can't collect inventory with " + interaction.actor);
 			}
-			invObj.SetPickedUp(collector);
+			UiGiverBase uiGiver = invObj.GetComponent<UiGiverBase>();
+			if (uiGiver != null) {
+				ProgressGiver pGiver = invObj.GetComponent<ProgressGiver>();
+				if (pGiver != null) {
+					Image img = FindBiggestVisibleFillImage(interaction.UiElement);
+					if (img != null) {
+						Debug.Log("set progress fill for " + img);
+						EventBind.IfNotAlready(pGiver.OnProgress, img, "set_" + nameof(img.fillAmount));
+					} else {
+						Debug.Log("would be really nice if "+interaction.act.text+" could have a progress bar UI element");
+					}
+				}
+				interaction.isFinished = false;
+				uiGiver.Invoke(collector.gameObject);
+			} else {
+				invObj.SetPickedUp(collector);
+			}
+			int itemIndex = collector.IndexOf(invObj);
+			interaction.isFinished = itemIndex >= 0;
+			Debug.Log("finished? "+ (itemIndex >= 0 ? collector.GetItem(itemIndex).Stringify() : "nope"));
 		}
 
 		public List<WayOfActing> GenerateDefaultPickupActions() {
@@ -98,5 +120,9 @@ namespace NonStandard.GameUi.Inventory {
 		private void OnCollisionEnter(Collision collision) {
 			PickupRequestBy(collision.gameObject); 
 		}
+		/// <summary>
+		/// placeholder method to mark that an Effort should update a user interface progress bar on the item's button
+		/// </summary>
+		public void SetActivateButtonProgressUiBar(float progress) { }
 	}
 }

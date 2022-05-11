@@ -7,7 +7,7 @@ namespace NonStandard.GameUi.Inventory {
 		public HashSet<RangedTarget> targets = new HashSet<RangedTarget>();
 		List<Wire> wires = new List<Wire>();
 		public Color color = new Color(1, 1, 0, .5f);
-		SphereCollider sc;
+		private SphereCollider _sphereCollider;
 		public Collider activeCollider;
 		public InventoryCollector inventoryCollector;
 		public EffortInterface actionUi;
@@ -23,7 +23,7 @@ namespace NonStandard.GameUi.Inventory {
 			}
 		}
 		private void Start() {
-			sc = GetComponent<SphereCollider>();
+			_sphereCollider = GetComponent<SphereCollider>();
 		}
 		void Update() {
 			List<RangedTarget> transformsOutOfRange = DrawTargetsAndRemoveOutOfRange();
