@@ -60,17 +60,17 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			UiGiverBase uiGiver = invObj.GetComponent<UiGiverBase>();
 			if (uiGiver != null) {
-				ProgressGiver pGiver = invObj.GetComponent<ProgressGiver>();
-				if (pGiver != null) {
-					Image img = FindBiggestVisibleFillImage(interaction.UiElement);
-					if (img != null) {
-						Debug.Log("set progress fill for " + img);
-						EventBind.IfNotAlready(pGiver.OnProgress, img, "set_" + nameof(img.fillAmount));
-					} else {
-						Debug.Log("would be really nice if "+interaction.act.text+" could have a progress bar UI element");
-					}
-				}
-				interaction.isFinished = false;
+				//ProgressGiver pGiver = invObj.GetComponent<ProgressGiver>();
+				//if (pGiver != null) {
+				//	Image img = FindBiggestVisibleFillImage(interaction.UiElement);
+				//	if (img != null) {
+				//		Debug.Log("set progress fill for " + img);
+				//		EventBind.IfNotAlready(pGiver.OnProgress, img, "set_" + nameof(img.fillAmount));
+				//	} else {
+				//		Debug.Log("would be really nice if "+interaction.act.text+" could have a progress bar UI element");
+				//	}
+				//}
+				//interaction.isFinished = false;
 				uiGiver.Invoke(collector.gameObject);
 			} else {
 				invObj.SetPickedUp(collector);
