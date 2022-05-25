@@ -80,7 +80,7 @@ namespace NonStandard.GameUi {
 			bool removed = false;
 			if (index >= 0) {
 				efforts[index].onAction -= IntractionUsed;
-				Debug.Log(" ~~ removed " + index);
+				//Debug.Log(" ~~ removed " + index);
 				efforts.RemoveAt(index);
 				removed = true;
 			}

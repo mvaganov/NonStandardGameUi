@@ -77,7 +77,7 @@ namespace NonStandard.GameUi.Inventory {
 			}
 			int itemIndex = collector.IndexOf(invObj);
 			interaction.isFinished = itemIndex >= 0;
-			Debug.Log("finished? "+ (itemIndex >= 0 ? collector.GetItem(itemIndex).Stringify() : "nope"));
+			//Debug.Log("finished? "+ (itemIndex >= 0 ? collector.GetItem(itemIndex).Stringify() : "nope"));
 		}
 
 		public List<WayOfActing> GenerateDefaultPickupActions() {
