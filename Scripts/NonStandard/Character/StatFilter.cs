@@ -17,6 +17,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		/// icon displayed for this adjustment
 		/// </summary>
 		public Sprite icon;
+		public Color spriteColor;
 		/// <summary>
 		/// what created this adjustment?
 		/// </summary>
