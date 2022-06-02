@@ -30,6 +30,7 @@ namespace NonStandard.GameUi {
 		private void OnTriggerEnter(Collider other) {
 			if (!enabled || IsAllowedToInteract(other.gameObject)) return;
 			UiGiverBase eg = GetComponent<UiGiverBase>();
+			if (eg == null) { return; }
 			eg.Invoke(other.gameObject);
 		}
 	}

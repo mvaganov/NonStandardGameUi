@@ -12,7 +12,8 @@ using UnityEngine;
 /// </summary>
 public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	public ScriptedDictionary baseDictionary;
-	[System.Serializable] public class Adjustment : Computable<string,object>, IComparable<Adjustment> {
+	[System.Serializable] public class Alteration {
+		public string name;
 		/// <summary>
 		/// icon displayed for this adjustment
 		/// </summary>
@@ -21,24 +22,47 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		/// <summary>
 		/// what created this adjustment?
 		/// </summary>
-		public object source;
+		public object sourceAgent;
 		/// <summary>
 		/// what kind of bonus? enhancement? morale? circumstance?
 		/// </summary>
 		public string kind;
+		public List<Kvp> adjustments;
+		[NonSerialized] private List<Adjustment> _adjustments;
+		public List<Adjustment> Adjustments {
+			get {
+				if (_adjustments == null && adjustments != null) {
+					_adjustments = new List<Adjustment>();
+					for (int i = 0; i < adjustments.Count; i++) {
+						_adjustments.Add(new Adjustment(adjustments[i].stat, float.Parse(adjustments[i].adjustment), this));
+					}
+				}
+				return _adjustments;
+			}
+		}
+		[System.Serializable] public struct Kvp { public string stat; public string adjustment; }
+	}
+	public class Adjustment : Computable<string,object>, IComparable<Adjustment> {
+		public Alteration source;
 
-		public Adjustment(string key, object value, object source, string kind) : base(key, value) {
+		public Adjustment(string key, object value, Alteration source) : base(key, value) {
 			this.source = source;
-			this.kind = kind;
+		}
+		public int KindCompareTo(Adjustment other) => KindCompareTo(this, other);
+		public static int KindCompareTo(Adjustment a, Adjustment b) {
+			if (a.source == null && b.source == null) return 0;
+			if (a.source != null && b.source == null) return -1;
+			if (a.source == null && b.source != null) return 1;
+			return a.source.kind.CompareTo(b.source.kind);
 		}
 		public bool Equals(Adjustment other) {
-			return source == other.source && kind == other.kind && _key == other._key && _val == other._val;
+			return source == other.source && KindCompareTo(other) == 0 && _key == other._key && _val == other._val;
 		}
 
 		public int CompareTo(Adjustment other) {
 			int i = key.CompareTo(other.key);
 			if (i != 0) return i;
-			i = kind.CompareTo(other.kind);
+			i = KindCompareTo(other);
 			if (i != 0) return i;
 			if (source is IComparable thisSource) {
 				i = thisSource.CompareTo(other.source);
@@ -80,6 +104,12 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 
 	public object this[string key] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
+	public void AddAdjustment(Alteration adjustmentGroup) {
+		for(int i = 0; i < adjustmentGroup.Adjustments.Count; ++i) {
+			AddAdjustment(adjustmentGroup.Adjustments[i]);
+		}
+	}
+
 	public void AddAdjustment(Adjustment adjustment) {
 		if (!baseDictionary.ContainsKey(adjustment.key)) {
 			throw new Exception("can't add modifier to '" + adjustment.key + "', does not exist in base dictionary");
@@ -111,8 +141,8 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		}
 	}
 
-	public void AddModifier(string key, object value, object source, string kind) {
-		Adjustment adjustment = new Adjustment(key, value, source, kind);
+	public void AddModifier(string key, object value, Alteration source) {
+		Adjustment adjustment = new Adjustment(key, value, source);
 		AddAdjustment(adjustment);
 	}
 
@@ -131,7 +161,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			object nextValue = mods[i].value;
 			float nextValueAdded = Convert.ToSingle(nextValue);
 			for (int j = i+1; j < mods.Count; ++j) {
-				if (mods[j].kind != mods[i].kind) break;
+				if (Adjustment.KindCompareTo(mods[j], mods[i]) != 0) break;
 				nextValue = mods[j].value;
 				float maybeHigherValue = Convert.ToSingle(nextValue);
 				if (Mathf.Abs(maybeHigherValue) > Mathf.Abs(nextValueAdded)) {
