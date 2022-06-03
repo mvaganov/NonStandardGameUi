@@ -12,7 +12,23 @@ using UnityEngine;
 /// </summary>
 public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	public ScriptedDictionary baseDictionary;
-	[System.Serializable] public class Alteration {
+	[SerializeField] private ScriptedDictionary.KvpChangeEvent valueChangeListener = new ScriptedDictionary.KvpChangeEvent();
+	[Tooltip("Adjustment listing. Please edit this with " + nameof(AddAdjustment) + " and " + nameof(RemoveAdjustmentSourcedFrom))]
+	public List<Adjustment> adjustments = new List<Adjustment>();
+	public Dictionary<string, List<Adjustment>> adjustmentsDict = new Dictionary<string, List<Adjustment>>();
+
+	public ICollection<string> Keys => throw new System.NotImplementedException();
+
+	public ICollection<object> Values => throw new System.NotImplementedException();
+
+	public int Count => throw new System.NotImplementedException();
+
+	public bool IsReadOnly => throw new System.NotImplementedException();
+
+	public object this[string key] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+	[System.Serializable]
+	public class Alteration {
 		public string name;
 		/// <summary>
 		/// icon displayed for this adjustment
@@ -42,7 +58,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		}
 		[System.Serializable] public struct Kvp { public string stat; public string adjustment; }
 	}
-	public class Adjustment : Computable<string,object>, IComparable<Adjustment> {
+	public class Adjustment : Computable<string, object>, IComparable<Adjustment> {
 		public Alteration source;
 
 		public Adjustment(string key, object value, Alteration source) : base(key, value) {
@@ -90,20 +106,6 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		}
 	}
 
-	[Tooltip("Adjustment listing. Please edit this with " + nameof(AddAdjustment) + " and " + nameof(RemoveAdjustmentSourcedFrom))]
-	public List<Adjustment> adjustments = new List<Adjustment>();
-	public Dictionary<string, List<Adjustment>> adjustmentsDict = new Dictionary<string, List<Adjustment>>();
-
-	public ICollection<string> Keys => throw new System.NotImplementedException();
-
-	public ICollection<object> Values => throw new System.NotImplementedException();
-
-	public int Count => throw new System.NotImplementedException();
-
-	public bool IsReadOnly => throw new System.NotImplementedException();
-
-	public object this[string key] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
 	public void AddAdjustment(Alteration adjustmentGroup) {
 		for(int i = 0; i < adjustmentGroup.Adjustments.Count; ++i) {
 			AddAdjustment(adjustmentGroup.Adjustments[i]);
@@ -123,8 +125,21 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			throw new Exception("duplicate adjustment? " + adjustment + " and " + list[index]);
 		}
 		if (index < 0) { index = ~index; }
+		object oldValue = null;
+		bool notifyChange = valueChangeListener.GetPersistentEventCount() > 0;
+		if (notifyChange) {
+			TryGetValue(adjustment.key, out oldValue);
+		}
 		list.Insert(index, adjustment);
 		adjustments.Add(adjustment);
+		if (notifyChange) {
+			TryGetValue(adjustment.key, out object newValue);
+			valueChangeListener.Invoke(adjustment.key, oldValue, newValue);
+		}
+	}
+
+	public void DebugPrintValueChange(string key, object oldValue, object newValue) {
+		Debug.Log($"\"{key}\" was ({oldValue}), now ({newValue})");
 	}
 
 	public List<Adjustment> GetAdjustmentsFor(string key) {
@@ -148,10 +163,10 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 
 	public bool TryGetValue(string key, out object value) {
 		if (!baseDictionary.TryGetValue(key, out value)) {
-			value = 0; return false;
+			value = 0f; return false;
 		}
 		adjustmentsDict.TryGetValue(key, out List<Adjustment> mods);
-		float sum = 0;
+		float sum;
 		try {
 			sum = Convert.ToSingle(value);
 		} catch (Exception) {
