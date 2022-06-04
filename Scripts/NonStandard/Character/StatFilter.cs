@@ -113,6 +113,18 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	}
 
 	public void AddAdjustment(Adjustment adjustment) {
+		object oldValue = null;
+		bool notifyChange = valueChangeListener.GetPersistentEventCount() > 0;
+		if (notifyChange) {
+			TryGetValue(adjustment.key, out oldValue);
+		}
+		AddAdjustmentNoNotify(adjustment);
+		if (notifyChange) {
+			TryGetValue(adjustment.key, out object newValue);
+			valueChangeListener.Invoke(adjustment.key, oldValue, newValue);
+		}
+	}
+	public void AddAdjustmentNoNotify(Adjustment adjustment) {
 		if (!baseDictionary.ContainsKey(adjustment.key)) {
 			throw new Exception("can't add modifier to '" + adjustment.key + "', does not exist in base dictionary");
 		}
@@ -125,17 +137,8 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			throw new Exception("duplicate adjustment? " + adjustment + " and " + list[index]);
 		}
 		if (index < 0) { index = ~index; }
-		object oldValue = null;
-		bool notifyChange = valueChangeListener.GetPersistentEventCount() > 0;
-		if (notifyChange) {
-			TryGetValue(adjustment.key, out oldValue);
-		}
 		list.Insert(index, adjustment);
 		adjustments.Add(adjustment);
-		if (notifyChange) {
-			TryGetValue(adjustment.key, out object newValue);
-			valueChangeListener.Invoke(adjustment.key, oldValue, newValue);
-		}
 	}
 
 	public void DebugPrintValueChange(string key, object oldValue, object newValue) {
@@ -155,6 +158,29 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			mods.Value.RemoveAtIndexes(indexes);
 		}
 	}
+	public void RemoveAdjustment(Alteration adjustmentGroup) {
+		RemoveAdjustment(adjustmentGroup, valueChangeListener.GetPersistentEventCount() > 0);
+	}
+	public void RemoveAdjustment(Alteration adjustmentGroup, bool notifyChange) {
+		List<Adjustment> adjustmentsToRemove = adjustmentGroup.Adjustments;
+		List<int> indexes = null;
+		foreach (var mods in adjustmentsDict) {
+			indexes = mods.Value.FindIndexes(x => adjustmentsToRemove.IndexOf(x) >= 0);
+			mods.Value.RemoveAtIndexes(indexes);
+		}
+		indexes = adjustments.FindIndexes(x => adjustmentsToRemove.IndexOf(x) >= 0);
+		if (notifyChange) {
+			for (int i = indexes.Count-1; i >= 0; --i) {
+				Adjustment adjustment = adjustments[indexes[i]];
+				TryGetValue(adjustment.key, out object oldValue);
+				adjustments.RemoveAt(indexes[i]);
+				TryGetValue(adjustment.key, out object newValue);
+				valueChangeListener.Invoke(adjustment.key, oldValue, newValue);
+			}
+		} else {
+			adjustments.RemoveAtIndexes(indexes);
+		}
+	}
 
 	public void AddModifier(string key, object value, Alteration source) {
 		Adjustment adjustment = new Adjustment(key, value, source);
@@ -172,19 +198,21 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		} catch (Exception) {
 			return true;
 		}
-		for (int i = 0; i < mods.Count; ++i) {
-			object nextValue = mods[i].value;
-			float nextValueAdded = Convert.ToSingle(nextValue);
-			for (int j = i+1; j < mods.Count; ++j) {
-				if (Adjustment.KindCompareTo(mods[j], mods[i]) != 0) break;
-				nextValue = mods[j].value;
-				float maybeHigherValue = Convert.ToSingle(nextValue);
-				if (Mathf.Abs(maybeHigherValue) > Mathf.Abs(nextValueAdded)) {
-					nextValueAdded = maybeHigherValue;
+		if (mods != null) {
+			for (int i = 0; i < mods.Count; ++i) {
+				object nextValue = mods[i].value;
+				float nextValueAdded = Convert.ToSingle(nextValue);
+				for (int j = i + 1; j < mods.Count; ++j) {
+					if (Adjustment.KindCompareTo(mods[j], mods[i]) != 0) break;
+					nextValue = mods[j].value;
+					float maybeHigherValue = Convert.ToSingle(nextValue);
+					if (Mathf.Abs(maybeHigherValue) > Mathf.Abs(nextValueAdded)) {
+						nextValueAdded = maybeHigherValue;
+					}
+					i = j;
 				}
-				i = j;
+				sum += nextValueAdded;
 			}
-			sum += nextValueAdded;
 		}
 		value = sum;
 		return true;
