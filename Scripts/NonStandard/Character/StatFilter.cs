@@ -44,13 +44,13 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		/// </summary>
 		public string kind;
 		public List<Kvp> adjustments;
-		[NonSerialized] private List<Adjustment> _adjustments;
-		public List<Adjustment> Adjustments {
+		[NonSerialized] private Dictionary<string,Adjustment> _adjustments;
+		public Dictionary<string, Adjustment> Adjustments {
 			get {
 				if (_adjustments == null && adjustments != null) {
-					_adjustments = new List<Adjustment>();
+					_adjustments = new Dictionary<string, Adjustment>();
 					for (int i = 0; i < adjustments.Count; i++) {
-						_adjustments.Add(new Adjustment(adjustments[i].stat, float.Parse(adjustments[i].adjustment), this));
+						_adjustments[adjustments[i].stat] = new Adjustment(adjustments[i].stat, float.Parse(adjustments[i].adjustment), this);
 					}
 				}
 				return _adjustments;
@@ -107,8 +107,8 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	}
 
 	public void AddAdjustment(Alteration adjustmentGroup) {
-		for(int i = 0; i < adjustmentGroup.Adjustments.Count; ++i) {
-			AddAdjustment(adjustmentGroup.Adjustments[i]);
+		foreach(var kvp in adjustmentGroup.Adjustments) {
+			AddAdjustment(kvp.Value);
 		}
 	}
 
@@ -142,7 +142,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	}
 
 	public void DebugPrintValueChange(string key, object oldValue, object newValue) {
-		Debug.Log($"\"{key}\" was ({oldValue}), now ({newValue})");
+		Debug.Log($"\"{key}\" was ({oldValue}), now ({newValue}) : {GetAdjustmentsFor(key).ConvertAll(a => a.key+":"+a.value).Stringify(false)}");
 	}
 
 	public List<Adjustment> GetAdjustmentsFor(string key) {
@@ -162,13 +162,12 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		RemoveAdjustment(adjustmentGroup, valueChangeListener.GetPersistentEventCount() > 0);
 	}
 	public void RemoveAdjustment(Alteration adjustmentGroup, bool notifyChange) {
-		List<Adjustment> adjustmentsToRemove = adjustmentGroup.Adjustments;
+		Dictionary<string,Adjustment> adjustmentsToRemove = adjustmentGroup.Adjustments;
 		List<int> indexes = null;
-		foreach (var mods in adjustmentsDict) {
-			indexes = mods.Value.FindIndexes(x => adjustmentsToRemove.IndexOf(x) >= 0);
-			mods.Value.RemoveAtIndexes(indexes);
+		foreach (KeyValuePair<string, Adjustment> adjustment in adjustmentsToRemove) {
+			RemoveAlterationsForStat(adjustment.Key, adjustmentGroup);
 		}
-		indexes = adjustments.FindIndexes(x => adjustmentsToRemove.IndexOf(x) >= 0);
+		indexes = adjustments.FindIndexes(x => x.source == adjustmentGroup);
 		if (notifyChange) {
 			for (int i = indexes.Count-1; i >= 0; --i) {
 				Adjustment adjustment = adjustments[indexes[i]];
@@ -181,7 +180,13 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			adjustments.RemoveAtIndexes(indexes);
 		}
 	}
-
+	private void RemoveAlterationsForStat(string key, Alteration adjustmentGroup) {
+		if (!adjustmentsDict.TryGetValue(key, out List<Adjustment> currentAdjustmentsToThisKey)) { return; }
+		for (int i = currentAdjustmentsToThisKey.Count - 1; i >= 0; --i) {
+			if (currentAdjustmentsToThisKey[i].source != adjustmentGroup) { continue; }
+			currentAdjustmentsToThisKey.RemoveAt(i);
+		}
+	}
 	public void AddModifier(string key, object value, Alteration source) {
 		Adjustment adjustment = new Adjustment(key, value, source);
 		AddAdjustment(adjustment);
@@ -220,9 +225,11 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 
 	public void PopulateData(List<object> data) {
 		baseDictionary.PopulateData(data);
+		Debug.Log("statfilter refresh");
 		for (int i = 0; i < data.Count; ++i) {
 			ComputeHashTable<string, object>.KV kv = data[i] as ComputeHashTable<string, object>.KV;
 			ComputeHashTable<string, object>.KV adjustedKv = kv.CloneWithoutCallback();
+			// TryGetValue sums the adjustments with the original data in baseDictionary
 			TryGetValue(kv.key, out object value);
 			adjustedKv.value = value;
 			data[i] = adjustedKv;
