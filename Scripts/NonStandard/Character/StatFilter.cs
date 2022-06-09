@@ -141,8 +141,10 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		adjustments.Add(adjustment);
 	}
 
+	public string AdjustListToString(string key) => GetAdjustmentsFor(key).ConvertAll(a => a.key + ":" + a.value).Stringify(false);
+
 	public void DebugPrintValueChange(string key, object oldValue, object newValue) {
-		Debug.Log($"\"{key}\" was ({oldValue}), now ({newValue}) : {GetAdjustmentsFor(key).ConvertAll(a => a.key+":"+a.value).Stringify(false)}");
+		Debug.Log($"\"{key}\" was ({oldValue}), now ({newValue}) : {AdjustListToString(key)}");
 	}
 
 	public List<Adjustment> GetAdjustmentsFor(string key) {
@@ -192,30 +194,38 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		AddAdjustment(adjustment);
 	}
 
-	public bool TryGetValue(string key, out object value) {
+	public bool TryGetValue(string key, out object value) => TryGetValue(key, out value, null);
+
+	public bool TryGetValue(string key, out object value, List<Adjustment> mods) {
 		if (!baseDictionary.TryGetValue(key, out value)) {
 			value = 0f; return false;
 		}
-		adjustmentsDict.TryGetValue(key, out List<Adjustment> mods);
+		adjustmentsDict.TryGetValue(key, out List<Adjustment> modifiers);
 		float sum;
 		try {
 			sum = Convert.ToSingle(value);
 		} catch (Exception) {
 			return true;
 		}
-		if (mods != null) {
-			for (int i = 0; i < mods.Count; ++i) {
-				object nextValue = mods[i].value;
+		if (modifiers != null) {
+			for (int i = 0; i < modifiers.Count; ++i) {
+				object nextValue = modifiers[i].value;
 				float nextValueAdded = Convert.ToSingle(nextValue);
-				for (int j = i + 1; j < mods.Count; ++j) {
-					if (Adjustment.KindCompareTo(mods[j], mods[i]) != 0) break;
-					nextValue = mods[j].value;
+				Adjustment best = modifiers[i];
+				for (int j = i + 1; j < modifiers.Count; ++j) {
+					if (Adjustment.KindCompareTo(modifiers[j], modifiers[i]) != 0) break;
+					nextValue = modifiers[j].value;
 					float maybeHigherValue = Convert.ToSingle(nextValue);
 					if (Mathf.Abs(maybeHigherValue) > Mathf.Abs(nextValueAdded)) {
 						nextValueAdded = maybeHigherValue;
+						best = modifiers[j];
 					}
 					i = j;
 				}
+				if (mods != null) {
+					mods.Add(best);
+				}
+				Debug.Log(key+" modified by "+best.source.kind);
 				sum += nextValueAdded;
 			}
 		}
@@ -223,14 +233,27 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 		return true;
 	}
 
+	[System.Serializable] public class KvWithNotes : ComputeHashTable<string, object>.KV {
+		public string notes;
+		public KvWithNotes(int hash, string k, KeyValueChangeCallback onChange) : base(hash, k, onChange) { }
+		public KvWithNotes(int hash, string k, object v, KeyValueChangeCallback onChange) : base(hash, k, v, onChange) { }
+	}
+
 	public void PopulateData(List<object> data) {
 		baseDictionary.PopulateData(data);
 		Debug.Log("statfilter refresh");
+		List<Adjustment> mods = new List<Adjustment>();
 		for (int i = 0; i < data.Count; ++i) {
 			ComputeHashTable<string, object>.KV kv = data[i] as ComputeHashTable<string, object>.KV;
-			ComputeHashTable<string, object>.KV adjustedKv = kv.CloneWithoutCallback();
+			KvWithNotes adjustedKv = kv.CloneWithNotesWithoutCallback();
 			// TryGetValue sums the adjustments with the original data in baseDictionary
-			TryGetValue(kv.key, out object value);
+			mods.Clear();
+			TryGetValue(kv.key, out object value, mods);
+			if (mods != null) {
+				adjustedKv.notes = mods.ConvertAll(a => a.key + ":" + a.value).Stringify(false);
+			} else {
+				adjustedKv.notes = "nothin";
+			}
 			adjustedKv.value = value;
 			data[i] = adjustedKv;
 		}
@@ -261,4 +284,9 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	IEnumerator IEnumerable.GetEnumerator() => baseDictionary.GetEnumerator();
 	public void NotifyReorder(List<RowData> reordered) { baseDictionary.NotifyReorder(reordered); }
 	public void NotifyReorder_Adjustment(List<RowData> reordered) { UnityDataSheet.NotifyReorder(reordered, adjustments); }
+}
+
+public static class KvExtention {
+	public static StatFilter.KvWithNotes CloneWithNotesWithoutCallback(this ComputeHashTable<string, object>.KV kv) =>
+		new StatFilter.KvWithNotes(kv.hash, kv.key, kv.value, null);
 }
