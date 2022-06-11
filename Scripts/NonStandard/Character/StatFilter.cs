@@ -234,7 +234,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 	}
 
 	[System.Serializable] public class KvWithNotes : ComputeHashTable<string, object>.KV {
-		public string notes;
+		public string notes = "NOTES";
 		public KvWithNotes(int hash, string k, KeyValueChangeCallback onChange) : base(hash, k, onChange) { }
 		public KvWithNotes(int hash, string k, object v, KeyValueChangeCallback onChange) : base(hash, k, v, onChange) { }
 	}
@@ -250,7 +250,7 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			mods.Clear();
 			TryGetValue(kv.key, out object value, mods);
 			if (mods != null) {
-				adjustedKv.notes = mods.ConvertAll(a => a.key + ":" + a.value).Stringify(false);
+				adjustedKv.notes = mods.JoinToString(", ", a => a.value + " " + a.source.kind);
 			} else {
 				adjustedKv.notes = "nothin";
 			}
