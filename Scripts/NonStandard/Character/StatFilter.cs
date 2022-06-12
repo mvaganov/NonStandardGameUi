@@ -249,13 +249,14 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			// TryGetValue sums the adjustments with the original data in baseDictionary
 			mods.Clear();
 			TryGetValue(kv.key, out object value, mods);
+			adjustedKv.value = value;
+			data[i] = adjustedKv;
 			if (mods != null) {
-				adjustedKv.notes = mods.JoinToString(", ", a => a.value + " " + a.source.kind);
+				string d = mods.Count > 0 ? "+" + mods.JoinToString("+", a => a.value + " " + a.source.kind) : "";
+				adjustedKv.notes = kv.value + d + " = " + value;
 			} else {
 				adjustedKv.notes = "nothin";
 			}
-			adjustedKv.value = value;
-			data[i] = adjustedKv;
 		}
 	}
 
