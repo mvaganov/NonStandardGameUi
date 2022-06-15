@@ -250,13 +250,13 @@ public class StatFilter : MonoBehaviour, IDictionary<string, object> {
 			mods.Clear();
 			TryGetValue(kv.key, out object value, mods);
 			adjustedKv.value = value;
-			data[i] = adjustedKv;
 			if (mods != null) {
 				string d = mods.Count > 0 ? "+" + mods.JoinToString("+", a => a.value + " " + a.source.kind) : "";
 				adjustedKv.notes = kv.value + d + " = " + value;
 			} else {
 				adjustedKv.notes = "nothin";
 			}
+			data[i] = adjustedKv;
 		}
 	}
 
